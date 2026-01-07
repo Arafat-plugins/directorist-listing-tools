@@ -1,0 +1,117 @@
+/**
+ * Admin Styles for Directorist Listing Tools
+ *
+ * @package DirectoristListingTools
+ */
+
+
+.dlt-results,
+.dlt-message {
+	margin: 20px 0;
+	padding: 10px;
+}
+
+.dlt-results .notice,
+.dlt-message .notice {
+	margin: 0;
+}
+
+.button-danger {
+	background-color: #dc3232;
+	border-color: #dc3232;
+	color: #fff;
+}
+
+.button-danger:hover,
+.button-danger:focus {
+	background-color: #a00;
+	border-color: #a00;
+	color: #fff;
+}
+
+#dlt-pending-form .tablenav,
+#dlt-bulk-delete-form .tablenav {
+	margin-bottom: 20px;
+}
+
+#dlt-pending-form .bulkactions,
+#dlt-bulk-delete-form .bulkactions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+#dlt-pending-form .bulkactions select {
+	margin-right: 0;
+}
+
+#dlt-pending-form table.wp-list-table,
+#dlt-bulk-delete-form table.wp-list-table {
+	margin-top: 10px;
+}
+
+#dlt-pending-form .listing-checkbox,
+#dlt-bulk-delete-form .listing-checkbox {
+	margin: 0;
+}
+
+.dlt-listing-count {
+	font-weight: 600;
+}
+
+#cb-select-all {
+	margin: 0;
+}
+
+#dlt-type-manager-container .tablenav {
+	margin-bottom: 20px;
+}
+
+#dlt-type-manager-container .bulkactions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+#dlt-type-manager-container table.wp-list-table {
+	margin-top: 10px;
+}
+
+#dlt-type-manager-container .dlt-type-listing-checkbox {
+	margin: 0;
+}
+
+#dlt-type-cb-select-all {
+	margin: 0;
+}
+
+#dlt-type-ajax-message {
+	margin: 20px 0;
+}
+
+#dlt-location-manager-container .tablenav {
+	margin-bottom: 20px;
+}
+
+#dlt-location-manager-container .bulkactions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+#dlt-location-manager-container table.wp-list-table {
+	margin-top: 10px;
+}
+
+#dlt-location-manager-container .dlt-location-listing-checkbox {
+	margin: 0;
+}
+
+#dlt-location-cb-select-all {
+	margin: 0;
+}
+
+#dlt-location-ajax-message {
+	margin: 20px 0;
+}
+

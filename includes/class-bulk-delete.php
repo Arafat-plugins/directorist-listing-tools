@@ -49,16 +49,31 @@ class Directorist_Listing_Tools_Bulk_Delete {
 	public function render_page() {
 		$results = isset( $_GET['results'] ) ? sanitize_text_field( wp_unslash( $_GET['results'] ) ) : '';
 		
-		// Pagination.
-		$per_page = 20;
+		// Pagination - allow user to select per page.
+		$per_page_options = array( 20, 50, 100, 200, 500, 1000, -1 );
+		$per_page = isset( $_GET['per_page'] ) ? absint( $_GET['per_page'] ) : 20;
+		
+		// Validate per_page value.
+		if ( ! in_array( $per_page, $per_page_options, true ) && $per_page !== -1 ) {
+			$per_page = 20;
+		}
+		
 		$current_page = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
-		$offset = ( $current_page - 1 ) * $per_page;
+		
+		// If per_page is -1, show all (no pagination).
+		if ( $per_page === -1 ) {
+			$offset = 0;
+			$posts_per_page = -1;
+		} else {
+			$offset = ( $current_page - 1 ) * $per_page;
+			$posts_per_page = $per_page;
+		}
 		
 		// Get listings with pagination.
-		$listings_data = $this->get_listings_with_pagination( $per_page, $offset );
+		$listings_data = $this->get_listings_with_pagination( $posts_per_page, $offset );
 		$listings = $listings_data['listings'];
 		$total = $listings_data['total'];
-		$total_pages = ceil( $total / $per_page );
+		$total_pages = ( $per_page === -1 ) ? 1 : ceil( $total / $per_page );
 		
 		?>
 		<div class="wrap">
@@ -86,6 +101,26 @@ class Directorist_Listing_Tools_Bulk_Delete {
 							<?php submit_button( esc_html__( 'Delete All', 'directorist-listing-tools' ), 'delete', 'delete_all_btn', false, array( 'class' => 'button-danger dlt-delete-all-btn' ) ); ?>
 						</div>
 						<div class="alignright">
+							<form method="get" style="display:inline-block; margin-right: 10px;">
+								<input type="hidden" name="post_type" value="<?php echo esc_attr( dlt_get_post_type() ); ?>">
+								<input type="hidden" name="page" value="directorist-listing-tools-bulk-delete">
+								<label for="dlt-per-page" style="margin-right: 5px;">
+									<?php esc_html_e( 'Per page:', 'directorist-listing-tools' ); ?>
+								</label>
+								<select id="dlt-per-page" name="per_page" onchange="this.form.submit();" style="margin-right: 10px;">
+									<?php foreach ( $per_page_options as $option ) : ?>
+										<option value="<?php echo esc_attr( $option ); ?>" <?php selected( $per_page, $option ); ?>>
+											<?php
+											if ( $option === -1 ) {
+												esc_html_e( 'All', 'directorist-listing-tools' );
+											} else {
+												echo esc_html( number_format_i18n( $option ) );
+											}
+											?>
+										</option>
+									<?php endforeach; ?>
+								</select>
+							</form>
 							<span class="dlt-listing-count">
 								<?php
 								printf(
@@ -153,13 +188,14 @@ class Directorist_Listing_Tools_Bulk_Delete {
 						</tbody>
 					</table>
 
-					<?php if ( $total_pages > 1 ) : ?>
+					<?php if ( $total_pages > 1 && $per_page !== -1 ) : ?>
 						<div class="tablenav bottom">
 							<div class="tablenav-pages">
 								<?php
 								$base_url = add_query_arg(
 									array(
-										'page' => 'directorist-listing-tools-bulk-delete',
+										'page'     => 'directorist-listing-tools-bulk-delete',
+										'per_page' => $per_page,
 									),
 									admin_url( 'edit.php?post_type=' . dlt_get_post_type() )
 								);
@@ -210,7 +246,7 @@ class Directorist_Listing_Tools_Bulk_Delete {
 	/**
 	 * Get listings with pagination.
 	 *
-	 * @param int $per_page Items per page.
+	 * @param int $per_page Items per page (-1 for all).
 	 * @param int $offset Offset.
 	 * @return array Array with 'listings' and 'total'.
 	 */
@@ -219,10 +255,14 @@ class Directorist_Listing_Tools_Bulk_Delete {
 			'post_type'      => dlt_get_post_type(),
 			'post_status'    => 'any',
 			'posts_per_page' => $per_page,
-			'offset'         => $offset,
 			'orderby'        => 'date',
 			'order'          => 'DESC',
 		);
+		
+		// Only set offset if not showing all.
+		if ( $per_page !== -1 ) {
+			$args['offset'] = $offset;
+		}
 
 		$query = new WP_Query( $args );
 		

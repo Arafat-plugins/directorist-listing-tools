@@ -78,23 +78,33 @@ class Directorist_Listing_Tools_Loader {
 	 * @param string $hook Current admin page hook.
 	 */
 	public function enqueue_admin_assets( $hook ) {
-		// Only load on our plugin pages.
-		if ( strpos( $hook, 'directorist-listing-tools' ) === false ) {
+		// Match by hook suffix OR by the ?page= query param — covers all live/local scenarios.
+		$our_page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : ''; // phpcs:ignore WordPress.Security.NonceVerification
+		$on_our_page = (
+			strpos( $hook, 'directorist-listing-tools' ) !== false ||
+			strpos( $our_page, 'directorist-listing-tools' ) !== false
+		);
+
+		if ( ! $on_our_page ) {
 			return;
 		}
+
+		// Use file-modification-time as version so any file change auto-busts the cache.
+		$css_ver = file_exists( DLT_DIR . 'assets/admin.css' ) ? filemtime( DLT_DIR . 'assets/admin.css' ) : DLT_VERSION;
+		$js_ver  = file_exists( DLT_DIR . 'assets/admin.js' )  ? filemtime( DLT_DIR . 'assets/admin.js' )  : DLT_VERSION;
 
 		wp_enqueue_style(
 			'dlt-admin-style',
 			DLT_URL . 'assets/admin.css',
 			array(),
-			DLT_VERSION
+			$css_ver
 		);
 
 		wp_enqueue_script(
 			'dlt-admin-script',
 			DLT_URL . 'assets/admin.js',
 			array( 'jquery' ),
-			DLT_VERSION,
+			$js_ver,
 			true
 		);
 
@@ -104,6 +114,7 @@ class Directorist_Listing_Tools_Loader {
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'nonce'   => wp_create_nonce( 'dlt_admin_nonce' ),
+				'page'    => $our_page,
 			)
 		);
 	}

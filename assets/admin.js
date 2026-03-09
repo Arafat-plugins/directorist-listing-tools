@@ -695,6 +695,14 @@
 
 	if ( $( '.dlt-plan-manager-wrap' ).length ) {
 
+		/* Safety check: if dltAdmin is not defined the script loaded but localization failed. */
+		if ( typeof dltAdmin === 'undefined' ) {
+			$( '#dlt-pm-global-message' )
+				.html( '<div class="notice notice-error"><p><strong>Directorist Listing Tools:</strong> Script configuration missing (dltAdmin undefined). Please deactivate and re-activate the plugin, or clear your site cache.</p></div>' )
+				.show();
+			return; // Stop plan manager code — AJAX would fail anyway.
+		}
+
 		/**
 		 * Show a notice at the top of the plan manager page.
 		 * Reuses the same #dlt-pm-global-message div.

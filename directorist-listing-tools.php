@@ -3,7 +3,7 @@
  * Plugin Name: Directorist Listing Tools
  * Plugin URI: https://github.com/arafat-plugins/directorist-listing-tools
  * Description: Advanced bulk listing management tools for Directorist. Bulk delete, manage pending listings, and change listing types.
- * Version: 1.0.0
+ * Version: 2.0.0
  * Author: Arafat
  * Author URI: https://yourwebsite.com
  * License: GPL v2 or later
@@ -24,7 +24,7 @@ if ( ! defined( 'WPINC' ) ) {
 /**
  * Plugin version.
  */
-define( 'DLT_VERSION', '1.0.0' );
+define( 'DLT_VERSION', '1.0.1' );
 
 /**
  * Plugin directory path.

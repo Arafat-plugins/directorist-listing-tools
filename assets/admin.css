@@ -115,3 +115,244 @@
 	margin: 20px 0;
 }
 
+
+/* ============================================================
+   Display Settings Page
+   ============================================================ */
+
+.dlt-display-settings-wrap {
+	max-width: 1100px;
+}
+
+.dlt-display-settings-wrap > .description {
+	color: #646970;
+	font-size: 13px;
+	margin-bottom: 20px;
+}
+
+/* Sections */
+.dlt-ds-sections {
+	margin-top: 18px;
+}
+
+.dlt-ds-section {
+	margin-bottom: 22px;
+}
+
+.dlt-ds-section .postbox-header {
+	border-bottom: 1px solid #e2e4e7;
+}
+
+.dlt-ds-section .hndle {
+	font-size: 14px;
+	padding: 12px 16px;
+}
+
+.dlt-ds-section .inside {
+	padding: 16px;
+	margin: 0;
+}
+
+.dlt-ds-section-desc {
+	color: #646970;
+	font-size: 13px;
+	margin: 0 0 14px 0;
+	padding: 8px 12px;
+	background: #f6f7f7;
+	border-left: 4px solid #2271b1;
+	border-radius: 2px;
+}
+
+/* Table */
+.dlt-ds-table {
+	border-collapse: collapse;
+	width: 100%;
+	background: #fff;
+}
+
+.dlt-ds-table thead th {
+	background: #f6f7f7;
+	color: #1d2327;
+	font-weight: 600;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	padding: 10px 14px;
+	border-bottom: 2px solid #e2e4e7;
+}
+
+.dlt-ds-table tbody tr {
+	border-bottom: 1px solid #f0f0f1;
+	transition: background 0.15s ease;
+}
+
+.dlt-ds-table tbody tr:hover {
+	background: #f9f9fb;
+}
+
+.dlt-ds-table tbody tr:last-child {
+	border-bottom: none;
+}
+
+.dlt-ds-label-cell {
+	padding: 13px 14px;
+	vertical-align: top;
+}
+
+.dlt-ds-label-cell strong {
+	display: block;
+	color: #1d2327;
+	font-size: 13px;
+	margin-bottom: 4px;
+}
+
+.dlt-ds-option-key {
+	display: inline-block;
+	font-size: 10px;
+	background: #f0f0f1;
+	color: #50575e;
+	padding: 1px 6px;
+	border-radius: 3px;
+	margin-top: 3px;
+	font-family: monospace;
+}
+
+.dlt-ds-inverse-note {
+	display: inline-block;
+	font-size: 11px;
+	color: #d63638;
+	font-style: italic;
+	margin-left: 4px;
+}
+
+.dlt-ds-desc-cell {
+	padding: 13px 14px;
+	font-size: 12px;
+	color: #646970;
+	vertical-align: top;
+}
+
+.dlt-ds-toggle-cell {
+	padding: 10px 14px;
+	text-align: center;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+/* ── Toggle Switch ─────────────────────────────────────── */
+.dlt-ds-toggle {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	vertical-align: middle;
+	margin-right: 8px;
+}
+
+.dlt-ds-toggle-input {
+	display: none;
+}
+
+.dlt-ds-toggle-slider {
+	position: relative;
+	display: inline-block;
+	width: 44px;
+	height: 24px;
+	background: #c3c4c7;
+	border-radius: 24px;
+	transition: background 0.25s ease;
+	box-shadow: inset 0 1px 3px rgba(0,0,0,.15);
+}
+
+.dlt-ds-toggle-slider::before {
+	content: '';
+	position: absolute;
+	left: 3px;
+	top: 3px;
+	width: 18px;
+	height: 18px;
+	background: #fff;
+	border-radius: 50%;
+	transition: transform 0.25s ease;
+	box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+
+.dlt-ds-toggle-input:checked + .dlt-ds-toggle-slider {
+	background: #2271b1;
+}
+
+.dlt-ds-toggle-input:checked + .dlt-ds-toggle-slider::before {
+	transform: translateX(20px);
+}
+
+/* loading state */
+.dlt-ds-toggle.is-loading .dlt-ds-toggle-slider {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+/* ── Status Badge ──────────────────────────────────────── */
+.dlt-ds-badge {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 12px;
+	font-size: 11px;
+	font-weight: 600;
+	vertical-align: middle;
+	letter-spacing: 0.3px;
+	transition: background 0.2s, color 0.2s;
+}
+
+.dlt-ds-badge-on {
+	background: #d7f0d2;
+	color: #1a7919;
+}
+
+.dlt-ds-badge-off {
+	background: #f8f0f0;
+	color: #99282b;
+}
+
+/* Row tint */
+.dlt-ds-table tbody tr.is-active .dlt-ds-label-cell strong {
+	color: #1d2327;
+}
+
+.dlt-ds-table tbody tr.is-inactive .dlt-ds-label-cell strong {
+	color: #8c8f94;
+}
+
+/* Spinner override */
+.dlt-ds-spinner.spinner {
+	visibility: visible;
+	float: none !important;
+	margin: 0 4px !important;
+	vertical-align: middle;
+}
+
+/* Global message bar */
+#dlt-ds-global-message .notice {
+	margin: 0;
+	padding: 8px 14px;
+}
+
+/* Footer note */
+.dlt-ds-footer {
+	margin-top: 12px;
+	padding: 14px 16px;
+	background: #f6f7f7;
+	border: 1px solid #e2e4e7;
+	border-radius: 4px;
+	font-size: 12px;
+	color: #646970;
+}
+
+.dlt-ds-footer p {
+	margin: 4px 0;
+}
+
+.dlt-ds-footer code {
+	background: #eee;
+	padding: 1px 5px;
+	border-radius: 3px;
+}
+

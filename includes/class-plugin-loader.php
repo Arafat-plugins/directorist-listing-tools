@@ -51,6 +51,7 @@ class Directorist_Listing_Tools_Loader {
 		require_once DLT_DIR . 'includes/class-pending-manager.php';
 		require_once DLT_DIR . 'includes/class-type-manager.php';
 		require_once DLT_DIR . 'includes/class-location-manager.php';
+		require_once DLT_DIR . 'includes/class-display-settings.php';
 		require_once DLT_DIR . 'includes/class-admin-menu.php';
 
 		// Instantiate classes early to register hooks.
@@ -58,6 +59,7 @@ class Directorist_Listing_Tools_Loader {
 		Directorist_Listing_Tools_Pending_Manager::get_instance();
 		Directorist_Listing_Tools_Type_Manager::get_instance();
 		Directorist_Listing_Tools_Location_Manager::get_instance();
+		Directorist_Listing_Tools_Display_Settings::get_instance();
 		Directorist_Listing_Tools_Admin_Menu::get_instance();
 	}
 

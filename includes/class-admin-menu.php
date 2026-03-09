@@ -87,6 +87,16 @@ class Directorist_Listing_Tools_Admin_Menu {
 			'directorist-listing-tools-location-manager',
 			array( $this, 'render_location_manager_page' )
 		);
+
+		// Display Settings.
+		add_submenu_page(
+			$parent_slug,
+			esc_html__( 'Listing Display Settings', 'directorist-listing-tools' ),
+			esc_html__( 'Listing Display Settings', 'directorist-listing-tools' ),
+			'manage_options',
+			'directorist-listing-tools-display-settings',
+			array( $this, 'render_display_settings_page' )
+		);
 	}
 
 	/**
@@ -135,6 +145,18 @@ class Directorist_Listing_Tools_Admin_Menu {
 
 		$location_manager = Directorist_Listing_Tools_Location_Manager::get_instance();
 		$location_manager->render_page();
+	}
+
+	/**
+	 * Render display settings page.
+	 */
+	public function render_display_settings_page() {
+		if ( ! dlt_current_user_can() ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
+		}
+
+		$display_settings = Directorist_Listing_Tools_Display_Settings::get_instance();
+		$display_settings->render_page();
 	}
 }
 

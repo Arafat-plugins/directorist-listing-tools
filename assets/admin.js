@@ -428,5 +428,118 @@
 			return false;
 		});
 	});
+
+	/* ================================================================
+	   Display Settings Page — AJAX Toggle Switches
+	   ================================================================ */
+
+	if ( $( '.dlt-ds-toggle-input' ).length ) {
+
+		/**
+		 * Show a dismissible notice in the global message bar.
+		 *
+		 * @param {string} message  HTML/text to show.
+		 * @param {string} type     'success' | 'error' | 'info'.
+		 */
+		function dltDsShowNotice( message, type ) {
+			type = type || 'success';
+			var html = '<div class="notice notice-' + type + ' is-dismissible">' +
+				'<p>' + message + '</p>' +
+				'<button type="button" class="notice-dismiss">' +
+				'<span class="screen-reader-text">Dismiss</span></button>' +
+				'</div>';
+			$( '#dlt-ds-global-message' ).html( html ).show();
+			$( 'html, body' ).animate( { scrollTop: 0 }, 250 );
+
+			// Auto-dismiss after 4 s for success messages.
+			if ( type === 'success' ) {
+				setTimeout( function () {
+					$( '#dlt-ds-global-message' ).fadeOut( 300, function () {
+						$( this ).html( '' );
+					} );
+				}, 4000 );
+			}
+		}
+
+		// Handle notice dismiss button.
+		$( document ).on( 'click', '#dlt-ds-global-message .notice-dismiss', function () {
+			$( '#dlt-ds-global-message' ).fadeOut( 200, function () {
+				$( this ).html( '' );
+			} );
+		} );
+
+		/**
+		 * Toggle handler.
+		 */
+		$( document ).on( 'change', '.dlt-ds-toggle-input', function () {
+			var $input     = $( this );
+			var optionKey  = $input.data( 'option-key' );
+			var optionLabel = $input.data( 'label' );
+			var newValue   = $input.is( ':checked' ) ? 1 : 0;
+			var $row       = $input.closest( 'tr.dlt-ds-row' );
+			var $cell      = $input.closest( '.dlt-ds-toggle-cell' );
+			var $badge     = $cell.find( '.dlt-ds-badge' );
+			var $spinner   = $cell.find( '.dlt-ds-spinner' );
+			var $toggleLabel = $input.closest( '.dlt-ds-toggle' );
+
+			// Show spinner, disable toggle.
+			$spinner.show();
+			$toggleLabel.addClass( 'is-loading' );
+			$input.prop( 'disabled', true );
+
+			$.ajax( {
+				url  : dltAdmin.ajaxUrl,
+				type : 'POST',
+				data : {
+					action        : 'dlt_toggle_display_setting',
+					nonce         : dltAdmin.nonce,
+					option_key    : optionKey,
+					option_value  : newValue
+				},
+				success: function ( response ) {
+					$spinner.hide();
+					$toggleLabel.removeClass( 'is-loading' );
+					$input.prop( 'disabled', false );
+
+					if ( response.success ) {
+						// Update badge.
+						if ( newValue ) {
+							$badge
+								.text( 'On' )
+								.removeClass( 'dlt-ds-badge-off' )
+								.addClass( 'dlt-ds-badge-on' );
+							$row.removeClass( 'is-inactive' ).addClass( 'is-active' );
+						} else {
+							$badge
+								.text( 'Off' )
+								.removeClass( 'dlt-ds-badge-on' )
+								.addClass( 'dlt-ds-badge-off' );
+							$row.removeClass( 'is-active' ).addClass( 'is-inactive' );
+						}
+						dltDsShowNotice( response.data.message, 'success' );
+					} else {
+						// Revert toggle on error.
+						$input.prop( 'checked', ! newValue );
+						var errMsg = ( response.data && response.data.message )
+							? response.data.message
+							: 'An error occurred while saving "' + optionLabel + '". Please try again.';
+						dltDsShowNotice( errMsg, 'error' );
+					}
+				},
+				error: function () {
+					$spinner.hide();
+					$toggleLabel.removeClass( 'is-loading' );
+					$input.prop( 'disabled', false );
+					// Revert.
+					$input.prop( 'checked', ! newValue );
+					dltDsShowNotice(
+						'A server error occurred while saving "' + optionLabel + '". Please try again.',
+						'error'
+					);
+				}
+			} );
+		} );
+	}
+
 })(jQuery);
 

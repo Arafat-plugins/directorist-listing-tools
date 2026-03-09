@@ -689,5 +689,117 @@
 
 	} // end .dlt-display-settings-wrap
 
+	/* ================================================================
+	   Plan Price Manager — Inline Save
+	   ================================================================ */
+
+	if ( $( '.dlt-plan-manager-wrap' ).length ) {
+
+		/**
+		 * Show a notice at the top of the plan manager page.
+		 * Reuses the same #dlt-pm-global-message div.
+		 */
+		function dltPmShowNotice( message, type ) {
+			type = type || 'success';
+			var html = '<div class="notice notice-' + type + ' is-dismissible">' +
+				'<p>' + message + '</p>' +
+				'<button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss</span></button></div>';
+			$( '#dlt-pm-global-message' ).html( html ).show();
+			$( 'html, body' ).animate( { scrollTop: 0 }, 250 );
+
+			if ( type === 'success' ) {
+				setTimeout( function () {
+					$( '#dlt-pm-global-message' ).fadeOut( 300, function () { $( this ).html( '' ); } );
+				}, 4000 );
+			}
+		}
+
+		$( document ).on( 'click', '#dlt-pm-global-message .notice-dismiss', function () {
+			$( '#dlt-pm-global-message' ).fadeOut( 200, function () { $( this ).html( '' ); } );
+		} );
+
+		/* When "Free Plan" toggle is switched on, grey-out price / tax fields */
+		$( document ).on( 'change', '.dlt-pm-free-plan', function () {
+			var $row = $( this ).closest( 'tr.dlt-pm-row' );
+			var isFree = $( this ).is( ':checked' );
+			$row.find( '.dlt-pm-price, .dlt-pm-tax-toggle, .dlt-pm-tax-type, .dlt-pm-tax-amount' )
+				.prop( 'disabled', isFree )
+				.toggleClass( 'dlt-pm-field-disabled', isFree );
+		} );
+
+		/* Trigger the free-plan disabling on page load */
+		$( '.dlt-pm-free-plan' ).each( function () {
+			$( this ).trigger( 'change' );
+		} );
+
+		/* When Tax toggle is off, disable tax type / amount */
+		$( document ).on( 'change', '.dlt-pm-tax-toggle', function () {
+			var $row = $( this ).closest( 'tr.dlt-pm-row' );
+			var taxOn = $( this ).is( ':checked' );
+			$row.find( '.dlt-pm-tax-type, .dlt-pm-tax-amount' )
+				.prop( 'disabled', ! taxOn )
+				.toggleClass( 'dlt-pm-field-disabled', ! taxOn );
+		} );
+
+		/* Trigger on load */
+		$( '.dlt-pm-tax-toggle' ).each( function () {
+			$( this ).trigger( 'change' );
+		} );
+
+		/* Save button */
+		$( document ).on( 'click', '.dlt-pm-save-btn', function () {
+			var $btn     = $( this );
+			var planId   = $btn.data( 'plan-id' );
+			var $row     = $btn.closest( 'tr.dlt-pm-row' );
+			var $spinner = $row.find( '.dlt-pm-row-spinner' );
+
+			var fm_price      = $row.find( '.dlt-pm-price' ).val() || 0;
+			var free_plan     = $row.find( '.dlt-pm-free-plan' ).is( ':checked' ) ? 1 : 0;
+			var plan_tax      = $row.find( '.dlt-pm-tax-toggle' ).is( ':checked' ) ? 1 : 0;
+			var plan_tax_type = $row.find( '.dlt-pm-tax-type' ).val();
+			var fm_tax        = $row.find( '.dlt-pm-tax-amount' ).val() || 0;
+
+			$btn.prop( 'disabled', true );
+			$spinner.css( 'visibility', 'visible' );
+
+			$.ajax( {
+				url  : dltAdmin.ajaxUrl,
+				type : 'POST',
+				data : {
+					action        : 'dlt_save_plan_prices',
+					nonce         : dltAdmin.nonce,
+					plan_id       : planId,
+					fm_price      : fm_price,
+					free_plan     : free_plan,
+					plan_tax      : plan_tax,
+					plan_tax_type : plan_tax_type,
+					fm_tax        : fm_tax
+				},
+				success: function ( response ) {
+					$btn.prop( 'disabled', false );
+					$spinner.css( 'visibility', 'hidden' );
+
+					if ( response.success ) {
+						/* Update the effective price cell */
+						$row.find( '.dlt-pm-effective-value' ).text( response.data.effective );
+						/* Flash the row green briefly */
+						$row.addClass( 'dlt-pm-saved' );
+						setTimeout( function () { $row.removeClass( 'dlt-pm-saved' ); }, 1600 );
+						dltPmShowNotice( response.data.message, 'success' );
+					} else {
+						var msg = ( response.data && response.data.message ) ? response.data.message : 'An error occurred.';
+						dltPmShowNotice( msg, 'error' );
+					}
+				},
+				error: function () {
+					$btn.prop( 'disabled', false );
+					$spinner.css( 'visibility', 'hidden' );
+					dltPmShowNotice( 'Server error. Please try again.', 'error' );
+				}
+			} );
+		} );
+
+	} // end .dlt-plan-manager-wrap
+
 })(jQuery);
 

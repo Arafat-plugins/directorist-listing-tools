@@ -97,6 +97,16 @@ class Directorist_Listing_Tools_Admin_Menu {
 			'directorist-listing-tools-display-settings',
 			array( $this, 'render_display_settings_page' )
 		);
+
+		// Plan Price Manager.
+		add_submenu_page(
+			$parent_slug,
+			esc_html__( 'Plan Price Manager', 'directorist-listing-tools' ),
+			esc_html__( 'Plan Price Manager', 'directorist-listing-tools' ),
+			'manage_options',
+			'directorist-listing-tools-plan-manager',
+			array( $this, 'render_plan_manager_page' )
+		);
 	}
 
 	/**
@@ -145,6 +155,18 @@ class Directorist_Listing_Tools_Admin_Menu {
 
 		$location_manager = Directorist_Listing_Tools_Location_Manager::get_instance();
 		$location_manager->render_page();
+	}
+
+	/**
+	 * Render plan price manager page.
+	 */
+	public function render_plan_manager_page() {
+		if ( ! dlt_current_user_can() ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
+		}
+
+		$plan_manager = Directorist_Listing_Tools_Plan_Manager::get_instance();
+		$plan_manager->render_page();
 	}
 
 	/**

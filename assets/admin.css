@@ -252,6 +252,10 @@
 	display: none;
 }
 
+.dlt-ds-dir-toggle-input {
+	display: none;
+}
+
 .dlt-ds-toggle-slider {
 	position: relative;
 	display: inline-block;
@@ -281,6 +285,15 @@
 }
 
 .dlt-ds-toggle-input:checked + .dlt-ds-toggle-slider::before {
+	transform: translateX(20px);
+}
+
+/* Same "on" state for per-directory toggles (different input class) */
+.dlt-ds-dir-toggle-input:checked + .dlt-ds-toggle-slider {
+	background: #2271b1;
+}
+
+.dlt-ds-dir-toggle-input:checked + .dlt-ds-toggle-slider::before {
 	transform: translateX(20px);
 }
 

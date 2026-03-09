@@ -718,32 +718,38 @@
 			$( '#dlt-pm-global-message' ).fadeOut( 200, function () { $( this ).html( '' ); } );
 		} );
 
-		/* When "Free Plan" toggle is switched on, grey-out price / tax fields */
-		$( document ).on( 'change', '.dlt-pm-free-plan', function () {
-			var $row = $( this ).closest( 'tr.dlt-pm-row' );
-			var isFree = $( this ).is( ':checked' );
-			$row.find( '.dlt-pm-price, .dlt-pm-tax-toggle, .dlt-pm-tax-type, .dlt-pm-tax-amount' )
+		/* When "Free Plan" toggle is switched on, grey-out ONLY price field (not tax — user may still configure it) */
+		function dltPmApplyFreePlanState( $row ) {
+			var isFree = $row.find( '.dlt-pm-free-plan' ).is( ':checked' );
+			$row.find( '.dlt-pm-price' )
 				.prop( 'disabled', isFree )
 				.toggleClass( 'dlt-pm-field-disabled', isFree );
+		}
+
+		$( document ).on( 'change', '.dlt-pm-free-plan', function () {
+			dltPmApplyFreePlanState( $( this ).closest( 'tr.dlt-pm-row' ) );
 		} );
 
-		/* Trigger the free-plan disabling on page load */
-		$( '.dlt-pm-free-plan' ).each( function () {
-			$( this ).trigger( 'change' );
+		/* Trigger the free-plan state on page load */
+		$( 'tr.dlt-pm-row' ).each( function () {
+			dltPmApplyFreePlanState( $( this ) );
 		} );
 
 		/* When Tax toggle is off, disable tax type / amount */
-		$( document ).on( 'change', '.dlt-pm-tax-toggle', function () {
-			var $row = $( this ).closest( 'tr.dlt-pm-row' );
-			var taxOn = $( this ).is( ':checked' );
+		function dltPmApplyTaxState( $row ) {
+			var taxOn = $row.find( '.dlt-pm-tax-toggle' ).is( ':checked' );
 			$row.find( '.dlt-pm-tax-type, .dlt-pm-tax-amount' )
 				.prop( 'disabled', ! taxOn )
 				.toggleClass( 'dlt-pm-field-disabled', ! taxOn );
+		}
+
+		$( document ).on( 'change', '.dlt-pm-tax-toggle', function () {
+			dltPmApplyTaxState( $( this ).closest( 'tr.dlt-pm-row' ) );
 		} );
 
 		/* Trigger on load */
-		$( '.dlt-pm-tax-toggle' ).each( function () {
-			$( this ).trigger( 'change' );
+		$( 'tr.dlt-pm-row' ).each( function () {
+			dltPmApplyTaxState( $( this ) );
 		} );
 
 		/* Save button */

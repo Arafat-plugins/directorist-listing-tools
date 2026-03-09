@@ -248,12 +248,18 @@
 	margin-right: 8px;
 }
 
-.dlt-ds-toggle-input {
-	display: none;
-}
-
+/* Hide the raw checkbox but keep it in DOM so :checked CSS selector still works.
+   Using position/opacity instead of display:none because WP admin CSS can
+   override display:none on checkboxes with !important rules. */
+.dlt-ds-toggle-input,
 .dlt-ds-dir-toggle-input {
-	display: none;
+	position: absolute !important;
+	opacity: 0 !important;
+	width: 0 !important;
+	height: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	pointer-events: none;
 }
 
 .dlt-ds-toggle-slider {

@@ -433,7 +433,9 @@
 	   Display Settings Page — AJAX Toggle Switches
 	   ================================================================ */
 
-	if ( $( '.dlt-ds-toggle-input' ).length ) {
+	if ( $( '.dlt-display-settings-wrap' ).length ) {
+
+		/* ── Shared utility ───────────────────────────────────────────── */
 
 		/**
 		 * Show a dismissible notice in the global message bar.
@@ -451,7 +453,6 @@
 			$( '#dlt-ds-global-message' ).html( html ).show();
 			$( 'html, body' ).animate( { scrollTop: 0 }, 250 );
 
-			// Auto-dismiss after 4 s for success messages.
 			if ( type === 'success' ) {
 				setTimeout( function () {
 					$( '#dlt-ds-global-message' ).fadeOut( 300, function () {
@@ -461,28 +462,23 @@
 			}
 		}
 
-		// Handle notice dismiss button.
 		$( document ).on( 'click', '#dlt-ds-global-message .notice-dismiss', function () {
-			$( '#dlt-ds-global-message' ).fadeOut( 200, function () {
-				$( this ).html( '' );
-			} );
+			$( '#dlt-ds-global-message' ).fadeOut( 200, function () { $( this ).html( '' ); } );
 		} );
 
-		/**
-		 * Toggle handler.
-		 */
+		/* ── Global Setting Toggles ───────────────────────────────────── */
+
 		$( document ).on( 'change', '.dlt-ds-toggle-input', function () {
-			var $input     = $( this );
-			var optionKey  = $input.data( 'option-key' );
-			var optionLabel = $input.data( 'label' );
-			var newValue   = $input.is( ':checked' ) ? 1 : 0;
-			var $row       = $input.closest( 'tr.dlt-ds-row' );
-			var $cell      = $input.closest( '.dlt-ds-toggle-cell' );
-			var $badge     = $cell.find( '.dlt-ds-badge' );
-			var $spinner   = $cell.find( '.dlt-ds-spinner' );
+			var $input       = $( this );
+			var optionKey    = $input.data( 'option-key' );
+			var optionLabel  = $input.data( 'label' );
+			var newValue     = $input.is( ':checked' ) ? 1 : 0;
+			var $row         = $input.closest( 'tr.dlt-ds-row' );
+			var $cell        = $input.closest( '.dlt-ds-toggle-cell' );
+			var $badge       = $cell.find( '.dlt-ds-badge' );
+			var $spinner     = $cell.find( '.dlt-ds-spinner' );
 			var $toggleLabel = $input.closest( '.dlt-ds-toggle' );
 
-			// Show spinner, disable toggle.
 			$spinner.show();
 			$toggleLabel.addClass( 'is-loading' );
 			$input.prop( 'disabled', true );
@@ -491,10 +487,10 @@
 				url  : dltAdmin.ajaxUrl,
 				type : 'POST',
 				data : {
-					action        : 'dlt_toggle_display_setting',
-					nonce         : dltAdmin.nonce,
-					option_key    : optionKey,
-					option_value  : newValue
+					action       : 'dlt_toggle_display_setting',
+					nonce        : dltAdmin.nonce,
+					option_key   : optionKey,
+					option_value : newValue
 				},
 				success: function ( response ) {
 					$spinner.hide();
@@ -502,27 +498,19 @@
 					$input.prop( 'disabled', false );
 
 					if ( response.success ) {
-						// Update badge.
 						if ( newValue ) {
-							$badge
-								.text( 'On' )
-								.removeClass( 'dlt-ds-badge-off' )
-								.addClass( 'dlt-ds-badge-on' );
+							$badge.text( 'On' ).removeClass( 'dlt-ds-badge-off' ).addClass( 'dlt-ds-badge-on' );
 							$row.removeClass( 'is-inactive' ).addClass( 'is-active' );
 						} else {
-							$badge
-								.text( 'Off' )
-								.removeClass( 'dlt-ds-badge-on' )
-								.addClass( 'dlt-ds-badge-off' );
+							$badge.text( 'Off' ).removeClass( 'dlt-ds-badge-on' ).addClass( 'dlt-ds-badge-off' );
 							$row.removeClass( 'is-active' ).addClass( 'is-inactive' );
 						}
 						dltDsShowNotice( response.data.message, 'success' );
 					} else {
-						// Revert toggle on error.
 						$input.prop( 'checked', ! newValue );
 						var errMsg = ( response.data && response.data.message )
 							? response.data.message
-							: 'An error occurred while saving "' + optionLabel + '". Please try again.';
+							: 'An error occurred while saving "' + optionLabel + '".';
 						dltDsShowNotice( errMsg, 'error' );
 					}
 				},
@@ -530,16 +518,176 @@
 					$spinner.hide();
 					$toggleLabel.removeClass( 'is-loading' );
 					$input.prop( 'disabled', false );
-					// Revert.
 					$input.prop( 'checked', ! newValue );
-					dltDsShowNotice(
-						'A server error occurred while saving "' + optionLabel + '". Please try again.',
-						'error'
-					);
+					dltDsShowNotice( 'A server error occurred while saving "' + optionLabel + '". Please try again.', 'error' );
 				}
 			} );
 		} );
-	}
+
+		/* ── Per-Directory Thumbnail Settings ────────────────────────── */
+
+		/**
+		 * Build the tbody HTML rows for the directory type settings table.
+		 *
+		 * @param {Object} data  Response data from dlt_load_directory_type_settings.
+		 * @returns {string}
+		 */
+		function dltDsBuildDirectoryRows( data ) {
+			if ( ! data.settings || ! data.settings.length ) {
+				return '<tr><td colspan="3" style="padding:14px;color:#646970;">' +
+					'No thumbnail settings found for this directory type.</td></tr>';
+			}
+
+			var html = '';
+			$.each( data.settings, function ( i, s ) {
+				var isOn       = s.value;
+				var badgeClass = isOn ? 'dlt-ds-badge-on' : 'dlt-ds-badge-off';
+				var badgeText  = isOn ? 'On' : 'Off';
+				var rowClass   = isOn ? 'is-active' : 'is-inactive';
+
+				html += '<tr class="dlt-ds-row dlt-ds-dir-row ' + rowClass + '"' +
+					' data-term-id="' + data.term_id + '"' +
+					' data-setting-key="' + s.key + '">' +
+
+					'<td class="dlt-ds-label-cell">' +
+						'<strong>' + s.label + '</strong>' +
+						'<br><code class="dlt-ds-option-key" style="font-size:11px;color:#8c8f94;">' + s.meta_label + '</code>' +
+					'</td>' +
+
+					'<td class="dlt-ds-desc-cell">' + s.description + '</td>' +
+
+					'<td class="dlt-ds-toggle-cell">' +
+						'<label class="dlt-ds-toggle" title="' + s.label + '">' +
+							'<input type="checkbox"' +
+								' class="dlt-ds-dir-toggle-input"' +
+								' data-term-id="' + data.term_id + '"' +
+								' data-setting-key="' + s.key + '"' +
+								( isOn ? ' checked' : '' ) + ' />' +
+							'<span class="dlt-ds-toggle-slider"></span>' +
+						'</label>' +
+						'<span class="dlt-ds-badge ' + badgeClass + '">' + badgeText + '</span>' +
+						'<span class="dlt-ds-spinner spinner" style="display:none;float:none;margin:0 4px;"></span>' +
+					'</td></tr>';
+			} );
+			return html;
+		}
+
+		/**
+		 * Load settings for a given directory type term ID via AJAX.
+		 *
+		 * @param {number} termId
+		 */
+		function dltDsLoadDirectorySettings( termId ) {
+			var $tbody   = $( '#dlt-ds-directory-tbody' );
+			var $spinner = $( '.dlt-ds-dir-spinner' );
+
+			$tbody.html(
+				'<tr><td colspan="3" style="text-align:center;padding:18px;">' +
+				'<span class="spinner is-active" style="float:none;vertical-align:middle;"></span> Loading\u2026</td></tr>'
+			);
+			$spinner.css( 'visibility', 'visible' );
+
+			$.ajax( {
+				url  : dltAdmin.ajaxUrl,
+				type : 'POST',
+				data : {
+					action  : 'dlt_load_directory_type_settings',
+					nonce   : dltAdmin.nonce,
+					term_id : termId
+				},
+				success: function ( response ) {
+					$spinner.css( 'visibility', 'hidden' );
+					if ( response.success ) {
+						$tbody.html( dltDsBuildDirectoryRows( response.data ) );
+					} else {
+						var msg = response.data && response.data.message ? response.data.message : 'Error loading settings.';
+						$tbody.html( '<tr><td colspan="3"><div class="notice notice-error inline"><p>' + msg + '</p></div></td></tr>' );
+					}
+				},
+				error: function () {
+					$spinner.css( 'visibility', 'hidden' );
+					$tbody.html( '<tr><td colspan="3"><div class="notice notice-error inline"><p>Server error. Please try again.</p></div></td></tr>' );
+				}
+			} );
+		}
+
+		// Auto-load settings for the first directory type on page load.
+		var $dirSelect = $( '#dlt-ds-directory-type-select' );
+		if ( $dirSelect.length ) {
+			var initialTermId = parseInt( $dirSelect.data( 'first-id' ), 10 );
+			if ( initialTermId ) {
+				dltDsLoadDirectorySettings( initialTermId );
+			}
+
+			// Reload when the user picks a different directory type.
+			$dirSelect.on( 'change', function () {
+				var termId = parseInt( $( this ).val(), 10 );
+				if ( termId ) {
+					dltDsLoadDirectorySettings( termId );
+				}
+			} );
+		}
+
+		// Handle per-directory thumbnail toggle changes.
+		$( document ).on( 'change', '.dlt-ds-dir-toggle-input', function () {
+			var $input       = $( this );
+			var termId       = $input.data( 'term-id' );
+			var settingKey   = $input.data( 'setting-key' );
+			var newValue     = $input.is( ':checked' ) ? 1 : 0;
+			var $row         = $input.closest( 'tr.dlt-ds-row' );
+			var $cell        = $input.closest( '.dlt-ds-toggle-cell' );
+			var $badge       = $cell.find( '.dlt-ds-badge' );
+			var $spinner     = $cell.find( '.dlt-ds-spinner' );
+			var $toggleLabel = $input.closest( '.dlt-ds-toggle' );
+
+			$spinner.show();
+			$toggleLabel.addClass( 'is-loading' );
+			$input.prop( 'disabled', true );
+
+			$.ajax( {
+				url  : dltAdmin.ajaxUrl,
+				type : 'POST',
+				data : {
+					action      : 'dlt_toggle_directory_type_setting',
+					nonce       : dltAdmin.nonce,
+					term_id     : termId,
+					setting_key : settingKey,
+					value       : newValue
+				},
+				success: function ( response ) {
+					$spinner.hide();
+					$toggleLabel.removeClass( 'is-loading' );
+					$input.prop( 'disabled', false );
+
+					if ( response.success ) {
+						if ( newValue ) {
+							$badge.text( 'On' ).removeClass( 'dlt-ds-badge-off' ).addClass( 'dlt-ds-badge-on' );
+							$row.removeClass( 'is-inactive' ).addClass( 'is-active' );
+						} else {
+							$badge.text( 'Off' ).removeClass( 'dlt-ds-badge-on' ).addClass( 'dlt-ds-badge-off' );
+							$row.removeClass( 'is-active' ).addClass( 'is-inactive' );
+						}
+						// Update the meta label code tag.
+						$row.find( 'code.dlt-ds-option-key' ).text( response.data.meta_label );
+						dltDsShowNotice( response.data.message, 'success' );
+					} else {
+						$input.prop( 'checked', ! newValue );
+						var errMsg = ( response.data && response.data.message )
+							? response.data.message : 'An error occurred. Please try again.';
+						dltDsShowNotice( errMsg, 'error' );
+					}
+				},
+				error: function () {
+					$spinner.hide();
+					$toggleLabel.removeClass( 'is-loading' );
+					$input.prop( 'disabled', false );
+					$input.prop( 'checked', ! newValue );
+					dltDsShowNotice( 'Server error. Please try again.', 'error' );
+				}
+			} );
+		} );
+
+	} // end .dlt-display-settings-wrap
 
 })(jQuery);
 

@@ -117,7 +117,7 @@
 
 
 /* ============================================================
-   Display Settings Page
+   Display Settings Page — Tabbed Layout
    ============================================================ */
 
 .dlt-display-settings-wrap {
@@ -130,37 +130,100 @@
 	margin-bottom: 20px;
 }
 
-/* Sections */
-.dlt-ds-sections {
-	margin-top: 18px;
-}
+/* ── Persistent Directory Type Bar ──────────────────────────── */
 
-.dlt-ds-section {
-	margin-bottom: 22px;
-}
-
-.dlt-ds-section .postbox-header {
-	border-bottom: 1px solid #e2e4e7;
-}
-
-.dlt-ds-section .hndle {
-	font-size: 14px;
+.dlt-ds-dir-type-bar {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
+	background: #fff;
+	border: 1px solid #e2e4e7;
+	border-radius: 4px;
 	padding: 12px 16px;
+	margin-bottom: 16px;
+	box-shadow: 0 1px 3px rgba(0,0,0,.05);
 }
 
-.dlt-ds-section .inside {
-	padding: 16px;
-	margin: 0;
+.dlt-ds-dir-icon {
+	color: #2271b1;
+	font-size: 18px;
+	vertical-align: middle;
 }
 
-.dlt-ds-section-desc {
+.dlt-ds-dir-type-bar label {
+	font-size: 13px;
+	color: #1d2327;
+	white-space: nowrap;
+}
+
+.dlt-ds-dir-type-bar select {
+	min-width: 260px;
+	max-width: 420px;
+	height: 34px;
+	font-size: 13px;
+	border-radius: 4px;
+	border: 1px solid #8c8f94;
+	padding: 0 8px;
+}
+
+.dlt-ds-dir-type-bar select:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+.dlt-ds-no-types {
+	font-size: 12px;
+	color: #b32d2e;
+}
+
+/* ── Tab Navigation ─────────────────────────────────────────── */
+
+.dlt-ds-tab-nav {
+	margin-bottom: 0;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.dlt-ds-tab-nav .nav-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 13px;
+	padding: 8px 14px;
+	border-bottom: none;
+	margin-bottom: -1px;
+}
+
+.dlt-ds-tab-nav .nav-tab.nav-tab-active {
+	background: #fff;
+	border-bottom-color: #fff;
+	color: #1d2327;
+}
+
+.dlt-tab-icon {
+	font-size: 16px;
+	vertical-align: middle;
+}
+
+/* ── Tab Panels ─────────────────────────────────────────────── */
+
+.dlt-ds-tab-panel {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	padding: 20px;
+}
+
+.dlt-ds-panel-intro {
 	color: #646970;
 	font-size: 13px;
-	margin: 0 0 14px 0;
-	padding: 8px 12px;
+	margin: 0 0 16px 0;
+	padding: 9px 12px;
 	background: #f6f7f7;
 	border-left: 4px solid #2271b1;
 	border-radius: 2px;
+	line-height: 1.6;
 }
 
 /* Table */
@@ -375,60 +438,8 @@
 	border-radius: 3px;
 }
 
-/* ── Directory Type Selector Card ──────────────────────────────── */
+/* ── Directory Type Spinner (inside persistent bar) ──────────── */
 
-.dlt-ds-directory-selector-card {
-	margin-bottom: 24px;
-}
-
-.dlt-ds-directory-selector-card .postbox-header {
-	border-bottom: 1px solid #e2e4e7;
-	background: linear-gradient(135deg, #f0f6fc 0%, #f6f7f7 100%);
-}
-
-.dlt-ds-directory-selector-card .hndle {
-	font-size: 14px;
-	padding: 12px 16px;
-	color: #1d2327;
-}
-
-.dlt-ds-directory-selector-card .inside {
-	padding: 18px 16px;
-	margin: 0;
-}
-
-/* Selector row */
-.dlt-ds-selector-row {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	gap: 12px;
-	margin-bottom: 4px;
-}
-
-.dlt-ds-selector-row label {
-	font-size: 13px;
-	color: #1d2327;
-	white-space: nowrap;
-}
-
-.dlt-ds-selector-row select {
-	min-width: 260px;
-	max-width: 420px;
-	height: 36px;
-	font-size: 13px;
-	border-radius: 4px;
-	border-color: #8c8f94;
-	padding: 0 8px;
-}
-
-.dlt-ds-selector-row select:focus {
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
-	outline: none;
-}
-
-/* Spinner inside selector row */
 .dlt-ds-dir-spinner.spinner {
 	visibility: hidden;
 	float: none !important;
@@ -436,13 +447,8 @@
 	vertical-align: middle;
 }
 
-/* Per-directory settings table wrapper */
-#dlt-ds-directory-settings-wrap {
-	border-top: 1px solid #e2e4e7;
-	padding-top: 16px;
-}
+/* ── Directory table row states ──────────────────────────────── */
 
-/* Directory row: dim inactive rows slightly */
 .dlt-ds-table tbody tr.dlt-ds-dir-row.is-inactive .dlt-ds-label-cell strong {
 	color: #8c8f94;
 }
@@ -451,18 +457,31 @@
 	color: #1d2327;
 }
 
-/* Global settings heading separator */
-.dlt-ds-global-heading {
-	font-size: 16px;
-	font-weight: 600;
-	color: #1d2327;
-	margin: 28px 0 6px;
-	padding-bottom: 10px;
-	border-bottom: 1px solid #e2e4e7;
+/* ── Listings With Map — Select field ────────────────────────── */
+
+.dlt-ds-lwm-select {
+	min-width: 140px;
+	height: 32px;
+	font-size: 13px;
+	padding: 0 6px;
+	border-radius: 4px;
+	border: 1px solid #8c8f94;
+	vertical-align: middle;
 }
 
-.dlt-ds-global-heading .dashicons {
-	color: #2271b1;
+.dlt-ds-lwm-select:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+.dlt-ds-lwm-saved-msg {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 600;
+	color: #1a7919;
+	margin-left: 6px;
+	vertical-align: middle;
 }
 
 /* ── Plan Price Manager ────────────────────────────────────────── */

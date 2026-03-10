@@ -430,19 +430,15 @@
 	});
 
 	/* ================================================================
-	   Display Settings Page — AJAX Toggle Switches
+	   Display Settings Page — Tabs, Toggles, and LWM Settings
 	   ================================================================ */
 
 	if ( $( '.dlt-display-settings-wrap' ).length ) {
 
-		/* ── Shared utility ───────────────────────────────────────────── */
+		var DLT_TAB_KEY = 'dlt_ds_active_tab';
 
-		/**
-		 * Show a dismissible notice in the global message bar.
-		 *
-		 * @param {string} message  HTML/text to show.
-		 * @param {string} type     'success' | 'error' | 'info'.
-		 */
+		/* ── Shared utility: dismissible notice ──────────────────────── */
+
 		function dltDsShowNotice( message, type ) {
 			type = type || 'success';
 			var html = '<div class="notice notice-' + type + ' is-dismissible">' +
@@ -464,6 +460,53 @@
 
 		$( document ).on( 'click', '#dlt-ds-global-message .notice-dismiss', function () {
 			$( '#dlt-ds-global-message' ).fadeOut( 200, function () { $( this ).html( '' ); } );
+		} );
+
+		/* ── Tab Switching ────────────────────────────────────────────── */
+
+		/**
+		 * Activate the given tab panel and update nav link state.
+		 *
+		 * @param {string} tabId  The data-tab value (e.g. 'thumbnail', 'card_display').
+		 */
+		function dltDsSwitchTab( tabId ) {
+			// Update nav links.
+			$( '.dlt-ds-tab-link' ).removeClass( 'nav-tab-active' ).attr( 'aria-selected', 'false' );
+			$( '.dlt-ds-tab-link[data-tab="' + tabId + '"]' )
+				.addClass( 'nav-tab-active' )
+				.attr( 'aria-selected', 'true' );
+
+			// Show / hide panels.
+			$( '.dlt-ds-tab-panel' ).hide();
+			$( '#dlt-tab-' + tabId ).show();
+
+			// Persist for next page load.
+			try {
+				sessionStorage.setItem( DLT_TAB_KEY, tabId );
+			} catch ( e ) { /* private browsing — ignore */ }
+
+			// If switching to thumbnail, refresh the directory table for the selected type.
+			if ( tabId === 'thumbnail' ) {
+				var termId = parseInt( $( '#dlt-ds-directory-type-select' ).val(), 10 );
+				if ( termId ) {
+					dltDsLoadDirectorySettings( termId );
+				}
+			}
+		}
+
+		// Restore last active tab from sessionStorage on page load.
+		( function () {
+			var savedTab = '';
+			try { savedTab = sessionStorage.getItem( DLT_TAB_KEY ) || ''; } catch ( e ) {}
+			if ( savedTab && $( '.dlt-ds-tab-link[data-tab="' + savedTab + '"]' ).length ) {
+				dltDsSwitchTab( savedTab );
+			}
+		} )();
+
+		// Tab click handler.
+		$( document ).on( 'click', '.dlt-ds-tab-link', function ( e ) {
+			e.preventDefault();
+			dltDsSwitchTab( $( this ).data( 'tab' ) );
 		} );
 
 		/* ── Global Setting Toggles ───────────────────────────────────── */
@@ -526,12 +569,6 @@
 
 		/* ── Per-Directory Thumbnail Settings ────────────────────────── */
 
-		/**
-		 * Build the tbody HTML rows for the directory type settings table.
-		 *
-		 * @param {Object} data  Response data from dlt_load_directory_type_settings.
-		 * @returns {string}
-		 */
 		function dltDsBuildDirectoryRows( data ) {
 			if ( ! data.settings || ! data.settings.length ) {
 				return '<tr><td colspan="3" style="padding:14px;color:#646970;">' +
@@ -572,11 +609,6 @@
 			return html;
 		}
 
-		/**
-		 * Load settings for a given directory type term ID via AJAX.
-		 *
-		 * @param {number} termId
-		 */
 		function dltDsLoadDirectorySettings( termId ) {
 			var $tbody   = $( '#dlt-ds-directory-tbody' );
 			var $spinner = $( '.dlt-ds-dir-spinner' );
@@ -611,24 +643,24 @@
 			} );
 		}
 
-		// Auto-load settings for the first directory type on page load.
+		// Auto-load on page load (only if the thumbnail panel is visible).
 		var $dirSelect = $( '#dlt-ds-directory-type-select' );
 		if ( $dirSelect.length ) {
 			var initialTermId = parseInt( $dirSelect.data( 'first-id' ), 10 );
-			if ( initialTermId ) {
+			if ( initialTermId && $( '#dlt-tab-thumbnail' ).is( ':visible' ) ) {
 				dltDsLoadDirectorySettings( initialTermId );
 			}
 
-			// Reload when the user picks a different directory type.
+			// Reload whenever the directory type selector changes (any tab).
 			$dirSelect.on( 'change', function () {
 				var termId = parseInt( $( this ).val(), 10 );
-				if ( termId ) {
+				if ( termId && $( '#dlt-tab-thumbnail' ).is( ':visible' ) ) {
 					dltDsLoadDirectorySettings( termId );
 				}
 			} );
 		}
 
-		// Handle per-directory thumbnail toggle changes.
+		// Per-directory thumbnail toggle handler.
 		$( document ).on( 'change', '.dlt-ds-dir-toggle-input', function () {
 			var $input       = $( this );
 			var termId       = $input.data( 'term-id' );
@@ -667,7 +699,6 @@
 							$badge.text( 'Off' ).removeClass( 'dlt-ds-badge-on' ).addClass( 'dlt-ds-badge-off' );
 							$row.removeClass( 'is-active' ).addClass( 'is-inactive' );
 						}
-						// Update the meta label code tag.
 						$row.find( 'code.dlt-ds-option-key' ).text( response.data.meta_label );
 						dltDsShowNotice( response.data.message, 'success' );
 					} else {
@@ -683,6 +714,115 @@
 					$input.prop( 'disabled', false );
 					$input.prop( 'checked', ! newValue );
 					dltDsShowNotice( 'Server error. Please try again.', 'error' );
+				}
+			} );
+		} );
+
+		/* ── Listings With Map — Select Save (AJAX on change) ─────────── */
+
+		var dltLwmSelectTimer = null;
+
+		$( document ).on( 'change', '.dlt-ds-lwm-select', function () {
+			var $select     = $( this );
+			var optionKey   = $select.data( 'option-key' );
+			var optionLabel = $select.data( 'label' );
+			var newValue    = $select.val();
+			var $cell       = $select.closest( '.dlt-ds-toggle-cell' );
+			var $spinner    = $cell.find( '.dlt-ds-spinner' );
+			var $saved      = $cell.find( '.dlt-ds-lwm-saved-msg' );
+
+			$spinner.show();
+			$saved.hide();
+			$select.prop( 'disabled', true );
+
+			clearTimeout( dltLwmSelectTimer );
+			dltLwmSelectTimer = setTimeout( function () {
+				$.ajax( {
+					url  : dltAdmin.ajaxUrl,
+					type : 'POST',
+					data : {
+						action       : 'dlt_save_lwm_setting',
+						nonce        : dltAdmin.nonce,
+						option_key   : optionKey,
+						option_value : newValue
+					},
+					success: function ( response ) {
+						$spinner.hide();
+						$select.prop( 'disabled', false );
+						if ( response.success ) {
+							$saved.fadeIn( 200 );
+							setTimeout( function () { $saved.fadeOut( 600 ); }, 2000 );
+							dltDsShowNotice( response.data.message, 'success' );
+						} else {
+							var errMsg = ( response.data && response.data.message )
+								? response.data.message
+								: 'An error occurred while saving "' + optionLabel + '".';
+							dltDsShowNotice( errMsg, 'error' );
+						}
+					},
+					error: function () {
+						$spinner.hide();
+						$select.prop( 'disabled', false );
+						dltDsShowNotice( 'Server error while saving "' + optionLabel + '". Please try again.', 'error' );
+					}
+				} );
+			}, 300 );
+		} );
+
+		/* ── Listings With Map — Toggle Save (AJAX on change) ─────────── */
+
+		$( document ).on( 'change', '.dlt-ds-lwm-toggle-input', function () {
+			var $input       = $( this );
+			var optionKey    = $input.data( 'option-key' );
+			var optionLabel  = $input.data( 'label' );
+			var newValue     = $input.is( ':checked' ) ? 1 : 0;
+			var $row         = $input.closest( 'tr.dlt-ds-row' );
+			var $cell        = $input.closest( '.dlt-ds-toggle-cell' );
+			var $badge       = $cell.find( '.dlt-ds-badge' );
+			var $spinner     = $cell.find( '.dlt-ds-spinner' );
+			var $toggleLabel = $input.closest( '.dlt-ds-toggle' );
+
+			$spinner.show();
+			$toggleLabel.addClass( 'is-loading' );
+			$input.prop( 'disabled', true );
+
+			$.ajax( {
+				url  : dltAdmin.ajaxUrl,
+				type : 'POST',
+				data : {
+					action       : 'dlt_save_lwm_setting',
+					nonce        : dltAdmin.nonce,
+					option_key   : optionKey,
+					option_value : newValue
+				},
+				success: function ( response ) {
+					$spinner.hide();
+					$toggleLabel.removeClass( 'is-loading' );
+					$input.prop( 'disabled', false );
+
+					if ( response.success ) {
+						if ( newValue ) {
+							$badge.text( 'On' ).removeClass( 'dlt-ds-badge-off' ).addClass( 'dlt-ds-badge-on' );
+							$row.removeClass( 'is-inactive' ).addClass( 'is-active' );
+						} else {
+							$badge.text( 'Off' ).removeClass( 'dlt-ds-badge-on' ).addClass( 'dlt-ds-badge-off' );
+							$row.removeClass( 'is-active' ).addClass( 'is-inactive' );
+						}
+						dltDsShowNotice( response.data.message, 'success' );
+					} else {
+						$input.prop( 'checked', ! newValue );
+						var errMsg = ( response.data && response.data.message )
+							? response.data.message
+							: 'An error occurred while saving "' + optionLabel + '".';
+						dltDsShowNotice( errMsg, 'error' );
+					}
+				},
+				error: function () {
+					$spinner.hide();
+					$toggleLabel.removeClass( 'is-loading' );
+					$input.prop( 'disabled', false );
+					$input.prop( 'checked', ! newValue );
+					dltDsShowNotice( 'Server error while saving "' + optionLabel + '". Please try again.', 'error' );
 				}
 			} );
 		} );

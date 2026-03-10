@@ -2,8 +2,9 @@
 /**
  * Display Settings Class
  *
- * Provides a sub-page to toggle all Directorist listing display options
- * for All Listings and Single Listing via AJAX toggles.
+ * WooCommerce-style tabbed settings page for all Directorist listing display options.
+ * Tabs: Thumbnail | All Listings Header | Card Display | Single Listing | Map Popup | [Listings With Map]
+ * A persistent Directory Type selector is visible on every tab.
  *
  * @package DirectoristListingTools
  */
@@ -18,15 +19,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Directorist_Listing_Tools_Display_Settings {
 
-	/**
-	 * Instance of this class.
-	 *
-	 * @var Directorist_Listing_Tools_Display_Settings
-	 */
+	/** @var Directorist_Listing_Tools_Display_Settings */
 	private static $instance = null;
 
 	/**
-	 * All toggle settings definitions.
+	 * Toggle settings definitions (global, stored in atbdp_option).
 	 * key => [ label, default, section, description ]
 	 *
 	 * @var array
@@ -41,7 +38,14 @@ class Directorist_Listing_Tools_Display_Settings {
 	private $sections = array();
 
 	/**
-	 * Get instance of this class.
+	 * Listings-With-Map extension settings (global, stored in atbdp_option).
+	 *
+	 * @var array
+	 */
+	private $lwm_settings = array();
+
+	/**
+	 * Get singleton instance.
 	 *
 	 * @return Directorist_Listing_Tools_Display_Settings
 	 */
@@ -58,13 +62,90 @@ class Directorist_Listing_Tools_Display_Settings {
 	private function __construct() {
 		$this->define_sections();
 		$this->define_settings();
-		// Global display setting toggles.
+		$this->define_lwm_settings();
+
 		add_action( 'wp_ajax_dlt_toggle_display_setting',        array( $this, 'handle_ajax_toggle' ) );
-		// Per-directory type setting toggles.
 		add_action( 'wp_ajax_dlt_load_directory_type_settings',  array( $this, 'handle_ajax_load_directory_type_settings' ) );
 		add_action( 'wp_ajax_dlt_toggle_directory_type_setting', array( $this, 'handle_ajax_toggle_directory_type_setting' ) );
-		// Inject saved option values into Directorist shortcode defaults.
+		add_action( 'wp_ajax_dlt_save_lwm_setting',              array( $this, 'handle_ajax_save_lwm_setting' ) );
+
 		add_filter( 'atbdp_all_listings_params', array( $this, 'inject_saved_display_params' ), 10, 1 );
+	}
+
+	// ────────────────────────────────────────────────────────────────
+	// Listings-With-Map Detection & Settings
+	// ────────────────────────────────────────────────────────────────
+
+	/**
+	 * Check whether the Directorist Listings-With-Map extension is active.
+	 *
+	 * @return bool
+	 */
+	private function is_listings_with_map_active() {
+		return class_exists( 'BD_Map_View' ) || defined( 'BDM_VERSION' );
+	}
+
+	/**
+	 * Define the Listings-With-Map extension settings.
+	 */
+	private function define_lwm_settings() {
+		$this->lwm_settings = array(
+			'bdmv_listings_with_map_columns' => array(
+				'label'       => __( 'Columns', 'directorist-listing-tools' ),
+				'description' => __( 'Number of listing columns displayed in the Listings With Map view.', 'directorist-listing-tools' ),
+				'type'        => 'select',
+				'default'     => '3',
+				'options'     => array(
+					'2' => __( '2 Columns', 'directorist-listing-tools' ),
+					'3' => __( '3 Columns', 'directorist-listing-tools' ),
+				),
+			),
+			'listing_map_view'               => array(
+				'label'       => __( 'Default View', 'directorist-listing-tools' ),
+				'description' => __( 'The default listing view loaded when the Listings With Map shortcode is rendered.', 'directorist-listing-tools' ),
+				'type'        => 'select',
+				'default'     => 'grid',
+				'options'     => array(
+					'grid' => __( 'Grid', 'directorist-listing-tools' ),
+					'list' => __( 'List', 'directorist-listing-tools' ),
+				),
+			),
+			'listings_map_viewas'            => array(
+				'label'       => __( 'Display "View As" Dropdown', 'directorist-listing-tools' ),
+				'description' => __( 'Show the view-switcher (Grid / List) control in the Listings With Map header bar.', 'directorist-listing-tools' ),
+				'type'        => 'toggle',
+				'default'     => 1,
+			),
+			'listings_map_sortby'            => array(
+				'label'       => __( 'Display "Sort By" Dropdown', 'directorist-listing-tools' ),
+				'description' => __( 'Show the sort-by dropdown in the Listings With Map header bar.', 'directorist-listing-tools' ),
+				'type'        => 'toggle',
+				'default'     => 1,
+			),
+		);
+	}
+
+	/**
+	 * Get current saved values for all LWM settings.
+	 *
+	 * @return array
+	 */
+	private function get_lwm_current_values() {
+		$values = array();
+		foreach ( $this->lwm_settings as $key => $setting ) {
+			if ( function_exists( 'get_directorist_option' ) ) {
+				$raw = get_directorist_option( $key, $setting['default'] );
+			} else {
+				$options = (array) get_option( 'atbdp_option', array() );
+				$raw     = isset( $options[ $key ] ) ? $options[ $key ] : $setting['default'];
+			}
+			if ( 'toggle' === $setting['type'] ) {
+				$values[ $key ] = ! empty( $raw );
+			} else {
+				$values[ $key ] = ! empty( $raw ) ? $raw : $setting['default'];
+			}
+		}
+		return $values;
 	}
 
 	// ────────────────────────────────────────────────────────────────
@@ -120,7 +201,67 @@ class Directorist_Listing_Tools_Display_Settings {
 	}
 
 	// ────────────────────────────────────────────────────────────────
-	// Per-Directory AJAX Handlers
+	// AJAX: LWM Settings Save
+	// ────────────────────────────────────────────────────────────────
+
+	/**
+	 * AJAX: Save a single Listings-With-Map setting (select or toggle).
+	 */
+	public function handle_ajax_save_lwm_setting() {
+		check_ajax_referer( 'dlt_admin_nonce', 'nonce' );
+
+		if ( ! dlt_current_user_can() ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'directorist-listing-tools' ) ) );
+		}
+
+		$option_key = isset( $_POST['option_key'] ) ? sanitize_key( $_POST['option_key'] ) : '';
+
+		if ( empty( $option_key ) || ! array_key_exists( $option_key, $this->lwm_settings ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid option key.', 'directorist-listing-tools' ) ) );
+		}
+
+		$setting = $this->lwm_settings[ $option_key ];
+
+		if ( 'toggle' === $setting['type'] ) {
+			$raw_value  = isset( $_POST['option_value'] ) ? rest_sanitize_boolean( $_POST['option_value'] ) : false;
+			$save_value = $raw_value ? 1 : 0;
+			$status     = $raw_value
+				? __( 'Enabled', 'directorist-listing-tools' )
+				: __( 'Disabled', 'directorist-listing-tools' );
+			$message = sprintf(
+				/* translators: 1: setting label, 2: enabled/disabled */
+				__( '"%1$s" has been %2$s.', 'directorist-listing-tools' ),
+				$setting['label'],
+				$status
+			);
+		} else {
+			$raw_value = isset( $_POST['option_value'] ) ? sanitize_text_field( $_POST['option_value'] ) : $setting['default'];
+			if ( ! array_key_exists( $raw_value, $setting['options'] ) ) {
+				wp_send_json_error( array( 'message' => __( 'Invalid option value.', 'directorist-listing-tools' ) ) );
+			}
+			$save_value = $raw_value;
+			$message    = sprintf(
+				/* translators: 1: setting label */
+				__( '"%1$s" has been saved.', 'directorist-listing-tools' ),
+				$setting['label']
+			);
+		}
+
+		$options                = (array) get_option( 'atbdp_option', array() );
+		$options[ $option_key ] = $save_value;
+		update_option( 'atbdp_option', $options );
+
+		wp_send_json_success(
+			array(
+				'message'      => $message,
+				'option_key'   => $option_key,
+				'option_value' => $save_value,
+			)
+		);
+	}
+
+	// ────────────────────────────────────────────────────────────────
+	// AJAX: Per-Directory Settings
 	// ────────────────────────────────────────────────────────────────
 
 	/**
@@ -218,13 +359,56 @@ class Directorist_Listing_Tools_Display_Settings {
 	}
 
 	// ────────────────────────────────────────────────────────────────
-	// Frontend Filter: inject saved options into Directorist defaults
+	// AJAX: Global Toggle
+	// ────────────────────────────────────────────────────────────────
+
+	/**
+	 * AJAX handler: toggle a single global display setting.
+	 */
+	public function handle_ajax_toggle() {
+		check_ajax_referer( 'dlt_admin_nonce', 'nonce' );
+
+		if ( ! dlt_current_user_can() ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'directorist-listing-tools' ) ) );
+		}
+
+		$option_key   = isset( $_POST['option_key'] ) ? sanitize_key( $_POST['option_key'] ) : '';
+		$option_value = isset( $_POST['option_value'] ) ? rest_sanitize_boolean( $_POST['option_value'] ) : false;
+
+		if ( empty( $option_key ) || ! array_key_exists( $option_key, $this->settings ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid option key.', 'directorist-listing-tools' ) ) );
+		}
+
+		$options                = (array) get_option( 'atbdp_option', array() );
+		$options[ $option_key ] = $option_value ? 1 : 0;
+		update_option( 'atbdp_option', $options );
+
+		$setting = $this->settings[ $option_key ];
+		$label   = $setting['label'];
+		$status  = $option_value
+			? __( 'Enabled', 'directorist-listing-tools' )
+			: __( 'Disabled', 'directorist-listing-tools' );
+
+		wp_send_json_success(
+			array(
+				'message'      => sprintf(
+					/* translators: 1: setting label, 2: enabled/disabled */
+					__( '"%1$s" has been %2$s.', 'directorist-listing-tools' ),
+					$label,
+					$status
+				),
+				'option_key'   => $option_key,
+				'option_value' => $option_value,
+			)
+		);
+	}
+
+	// ────────────────────────────────────────────────────────────────
+	// Frontend Filter
 	// ────────────────────────────────────────────────────────────────
 
 	/**
 	 * Inject saved display options into Directorist All Listings shortcode defaults.
-	 * Directorist hardcodes params like display_preview_image => 'yes' and does not
-	 * read them from atbdp_option, so we override them here via the filter.
 	 *
 	 * @param array $defaults Shortcode param defaults.
 	 * @return array
@@ -234,7 +418,6 @@ class Directorist_Listing_Tools_Display_Settings {
 			return $defaults;
 		}
 
-		// yes/no params we manage via atbdp_option.
 		$yes_no_params = array(
 			'display_preview_image', 'display_listings_header', 'listing_filters_button',
 			'display_sort_by', 'display_view_as', 'display_listings_count', 'display_title',
@@ -252,24 +435,27 @@ class Directorist_Listing_Tools_Display_Settings {
 			if ( ! array_key_exists( $key, $defaults ) ) {
 				continue;
 			}
-			$setting = isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : array( 'default' => 1 );
-			$raw     = get_directorist_option( $key, $setting['default'] );
+			$setting          = isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : array( 'default' => 1 );
+			$raw              = get_directorist_option( $key, $setting['default'] );
 			$defaults[ $key ] = ! empty( $raw ) ? 'yes' : 'no';
 		}
 
-		// Inverse: stored as disable_* (1 = hide).
 		$inverse_params = array( 'disable_list_price', 'disable_single_listing', 'disable_contact_info' );
 		foreach ( $inverse_params as $key ) {
 			if ( ! array_key_exists( $key, $defaults ) ) {
 				continue;
 			}
-			$setting = isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : array( 'default' => 0 );
-			$raw     = get_directorist_option( $key, $setting['default'] );
+			$setting          = isset( $this->settings[ $key ] ) ? $this->settings[ $key ] : array( 'default' => 0 );
+			$raw              = get_directorist_option( $key, $setting['default'] );
 			$defaults[ $key ] = ! empty( $raw ) ? 'yes' : 'no';
 		}
 
 		return $defaults;
 	}
+
+	// ────────────────────────────────────────────────────────────────
+	// Settings & Section Definitions
+	// ────────────────────────────────────────────────────────────────
 
 	/**
 	 * Define section labels and icons.
@@ -300,7 +486,7 @@ class Directorist_Listing_Tools_Display_Settings {
 	}
 
 	/**
-	 * Define all toggleable settings.
+	 * Define all toggleable global settings.
 	 */
 	private function define_settings() {
 		$this->settings = array(
@@ -535,7 +721,7 @@ class Directorist_Listing_Tools_Display_Settings {
 	}
 
 	/**
-	 * Get all settings as a flat array of option_key => current_value.
+	 * Get all global settings as a flat array of option_key => current_value.
 	 *
 	 * @return array
 	 */
@@ -548,56 +734,17 @@ class Directorist_Listing_Tools_Display_Settings {
 				$options = (array) get_option( 'atbdp_option', array() );
 				$raw     = isset( $options[ $key ] ) ? $options[ $key ] : $setting['default'];
 			}
-			// Normalize to bool.
 			$current[ $key ] = ! empty( $raw ) ? true : false;
 		}
 		return $current;
 	}
 
-	/**
-	 * AJAX handler: toggle a single display setting.
-	 */
-	public function handle_ajax_toggle() {
-		check_ajax_referer( 'dlt_admin_nonce', 'nonce' );
-
-		if ( ! dlt_current_user_can() ) {
-			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'directorist-listing-tools' ) ) );
-		}
-
-		$option_key   = isset( $_POST['option_key'] ) ? sanitize_key( $_POST['option_key'] ) : '';
-		$option_value = isset( $_POST['option_value'] ) ? rest_sanitize_boolean( $_POST['option_value'] ) : false;
-
-		if ( empty( $option_key ) || ! array_key_exists( $option_key, $this->settings ) ) {
-			wp_send_json_error( array( 'message' => __( 'Invalid option key.', 'directorist-listing-tools' ) ) );
-		}
-
-		// Save to atbdp_option.
-		$options            = (array) get_option( 'atbdp_option', array() );
-		$options[ $option_key ] = $option_value ? 1 : 0;
-		update_option( 'atbdp_option', $options );
-
-		$setting = $this->settings[ $option_key ];
-		$label   = $setting['label'];
-		$status  = $option_value
-			? __( 'Enabled', 'directorist-listing-tools' )
-			: __( 'Disabled', 'directorist-listing-tools' );
-
-		wp_send_json_success(
-			array(
-				'message'      => sprintf(
-					/* translators: 1: setting label, 2: enabled/disabled */
-					__( '"%1$s" has been %2$s.', 'directorist-listing-tools' ),
-					$label,
-					$status
-				),
-				'option_key'   => $option_key,
-				'option_value' => $option_value,
-			)
-		);
-	}
+	// ────────────────────────────────────────────────────────────────
+	// Page Renderer
+	// ────────────────────────────────────────────────────────────────
 
 	/**
-	 * Render the Display Settings admin page.
+	 * Render the Display Settings admin page (WooCommerce-style tabs).
 	 */
 	public function render_page() {
 		if ( ! dlt_current_user_can() ) {
@@ -607,12 +754,46 @@ class Directorist_Listing_Tools_Display_Settings {
 		$current_values  = $this->get_current_values();
 		$directory_types = $this->get_directory_types();
 		$first_term_id   = ! empty( $directory_types ) ? (int) $directory_types[0]->term_id : 0;
+		$lwm_active      = $this->is_listings_with_map_active();
+		$lwm_values      = $lwm_active ? $this->get_lwm_current_values() : array();
 
 		// Group global settings by section.
 		$grouped = array();
 		foreach ( $this->settings as $key => $setting ) {
 			$grouped[ $setting['section'] ][ $key ] = $setting;
 		}
+
+		// Build tab list.
+		$tabs = array(
+			'thumbnail'           => array(
+				'label' => __( 'Thumbnail', 'directorist-listing-tools' ),
+				'icon'  => 'dashicons-format-image',
+			),
+			'all_listings_header' => array(
+				'label' => __( 'All Listings Header', 'directorist-listing-tools' ),
+				'icon'  => 'dashicons-menu-alt',
+			),
+			'card_display'        => array(
+				'label' => __( 'Card Display', 'directorist-listing-tools' ),
+				'icon'  => 'dashicons-grid-view',
+			),
+			'single_listing'      => array(
+				'label' => __( 'Single Listing', 'directorist-listing-tools' ),
+				'icon'  => 'dashicons-admin-post',
+			),
+			'map_popup'           => array(
+				'label' => __( 'Map Popup', 'directorist-listing-tools' ),
+				'icon'  => 'dashicons-location-alt',
+			),
+		);
+		if ( $lwm_active ) {
+			$tabs['listings_with_map'] = array(
+				'label' => __( 'Listings With Map', 'directorist-listing-tools' ),
+				'icon'  => 'dashicons-location',
+			);
+		}
+
+		$first_tab = array_key_first( $tabs );
 		?>
 		<div class="wrap dlt-display-settings-wrap">
 
@@ -620,164 +801,237 @@ class Directorist_Listing_Tools_Display_Settings {
 				<span class="dashicons dashicons-visibility" style="font-size:28px;vertical-align:middle;margin-right:6px;color:#2271b1;"></span>
 				<?php esc_html_e( 'Listing Display Settings', 'directorist-listing-tools' ); ?>
 			</h1>
-			<p class="description" style="margin-top:6px;">
-				<?php esc_html_e( 'Toggle Directorist listing display options on or off. Changes save instantly via AJAX — no page reload needed.', 'directorist-listing-tools' ); ?>
+			<p class="description" style="margin-top:6px;margin-bottom:18px;">
+				<?php esc_html_e( 'Manage all Directorist listing display options. Use the tabs below to navigate settings. Changes are saved instantly — no page reload needed.', 'directorist-listing-tools' ); ?>
 			</p>
 
-			<div id="dlt-ds-global-message" style="display:none;margin:15px 0;"></div>
+			<?php /* ── Persistent Directory Type Bar ──────────────────────── */ ?>
+			<div class="dlt-ds-dir-type-bar">
+				<span class="dashicons dashicons-category dlt-ds-dir-icon"></span>
+				<label for="dlt-ds-directory-type-select">
+					<strong><?php esc_html_e( 'Directory Type:', 'directorist-listing-tools' ); ?></strong>
+				</label>
 
-			<?php /* ── STEP 1: Directory Type Selector ───────────────────────── */ ?>
-			<div class="dlt-ds-directory-selector-card postbox">
-				<div class="postbox-header">
-					<h2 class="hndle">
-						<span class="dashicons dashicons-category" style="vertical-align:middle;margin-right:6px;"></span>
-						<?php esc_html_e( 'Directory Type — Thumbnail Settings', 'directorist-listing-tools' ); ?>
-					</h2>
-				</div>
-				<div class="inside">
-					<p class="dlt-ds-section-desc">
-						<?php esc_html_e( 'Select a directory type to view and toggle its thumbnail visibility for Grid and List views. These settings are saved per-directory in term meta.', 'directorist-listing-tools' ); ?>
-					</p>
+				<?php if ( empty( $directory_types ) ) : ?>
+					<em class="dlt-ds-no-types">
+						<?php esc_html_e( 'No directory types found. Please create a directory type in Directorist first.', 'directorist-listing-tools' ); ?>
+					</em>
+				<?php else : ?>
+					<select id="dlt-ds-directory-type-select" data-first-id="<?php echo esc_attr( $first_term_id ); ?>">
+						<?php foreach ( $directory_types as $type ) : ?>
+							<option value="<?php echo esc_attr( $type->term_id ); ?>">
+								<?php echo esc_html( $type->name ); ?>
+								<?php if ( ! empty( $type->slug ) ) : ?>
+									(<?php echo esc_html( $type->slug ); ?>)
+								<?php endif; ?>
+							</option>
+						<?php endforeach; ?>
+					</select>
+					<span class="dlt-ds-dir-spinner spinner" style="float:none;visibility:hidden;margin:0 8px;vertical-align:middle;"></span>
+				<?php endif; ?>
+			</div>
 
-					<?php if ( empty( $directory_types ) ) : ?>
-						<div class="notice notice-warning inline"><p>
-							<?php esc_html_e( 'No directory types found. Please create a directory type in Directorist first.', 'directorist-listing-tools' ); ?>
-						</p></div>
-					<?php else : ?>
+			<?php /* ── Global Message Bar ─────────────────────────────────── */ ?>
+			<div id="dlt-ds-global-message" style="display:none;margin:10px 0;"></div>
 
-					<div class="dlt-ds-selector-row">
-						<label for="dlt-ds-directory-type-select">
-							<strong><?php esc_html_e( 'Select Directory Type:', 'directorist-listing-tools' ); ?></strong>
-						</label>
-						<select id="dlt-ds-directory-type-select" data-first-id="<?php echo esc_attr( $first_term_id ); ?>">
-							<?php foreach ( $directory_types as $type ) : ?>
-								<option value="<?php echo esc_attr( $type->term_id ); ?>">
-									<?php echo esc_html( $type->name ); ?>
-									<?php if ( ! empty( $type->description ) ) : ?>
-										(<?php echo esc_html( $type->slug ); ?>)
-									<?php endif; ?>
-								</option>
-							<?php endforeach; ?>
-						</select>
-						<span class="dlt-ds-dir-spinner spinner" style="float:none;visibility:hidden;margin:0 8px;vertical-align:middle;"></span>
-					</div>
-
-					<?php /* Per-directory settings table — populated by AJAX */ ?>
-					<div id="dlt-ds-directory-settings-wrap" style="margin-top:16px;">
-						<table class="dlt-ds-table widefat" id="dlt-ds-directory-table">
-							<thead>
-								<tr>
-									<th style="width:42%;"><?php esc_html_e( 'View Option', 'directorist-listing-tools' ); ?></th>
-									<th><?php esc_html_e( 'Description', 'directorist-listing-tools' ); ?></th>
-									<th style="width:160px;text-align:center;"><?php esc_html_e( 'Status', 'directorist-listing-tools' ); ?></th>
-								</tr>
-							</thead>
-							<tbody id="dlt-ds-directory-tbody">
-								<tr>
-									<td colspan="3" style="text-align:center;padding:20px;color:#646970;">
-										<span class="spinner is-active" style="float:none;"></span>
-										<?php esc_html_e( 'Loading…', 'directorist-listing-tools' ); ?>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-
-					<?php endif; ?>
-				</div><!-- .inside -->
-			</div><!-- .dlt-ds-directory-selector-card -->
-
-			<?php /* ── STEP 2: Global Settings ───────────────────────────────── */ ?>
-			<h2 class="dlt-ds-global-heading">
-				<span class="dashicons dashicons-admin-settings" style="vertical-align:middle;margin-right:6px;"></span>
-				<?php esc_html_e( 'Global Display Settings', 'directorist-listing-tools' ); ?>
-			</h2>
-			<p class="description" style="margin-bottom:14px;">
-				<?php esc_html_e( 'These settings apply globally to all listings and are stored in the WordPress options table (atbdp_option).', 'directorist-listing-tools' ); ?>
-			</p>
-
-			<div class="dlt-ds-sections">
-				<?php foreach ( $this->sections as $section_id => $section ) : ?>
-					<?php if ( empty( $grouped[ $section_id ] ) ) : continue; endif; ?>
-
-					<div class="dlt-ds-section postbox">
-						<div class="postbox-header">
-							<h2 class="hndle">
-								<span class="dashicons <?php echo esc_attr( $section['icon'] ); ?>" style="vertical-align:middle;margin-right:6px;"></span>
-								<?php echo esc_html( $section['label'] ); ?>
-							</h2>
-						</div>
-						<div class="inside">
-							<?php if ( ! empty( $section['description'] ) ) : ?>
-								<p class="dlt-ds-section-desc"><?php echo esc_html( $section['description'] ); ?></p>
-							<?php endif; ?>
-
-							<table class="dlt-ds-table widefat">
-								<thead>
-									<tr>
-										<th style="width:42%;"><?php esc_html_e( 'Option', 'directorist-listing-tools' ); ?></th>
-										<th><?php esc_html_e( 'Description', 'directorist-listing-tools' ); ?></th>
-										<th style="width:120px;text-align:center;"><?php esc_html_e( 'Status', 'directorist-listing-tools' ); ?></th>
-									</tr>
-								</thead>
-								<tbody>
-									<?php foreach ( $grouped[ $section_id ] as $key => $setting ) :
-										$is_enabled  = $current_values[ $key ];
-										$is_inverse  = ! empty( $setting['inverse'] );
-										$toggle_on   = $is_enabled;
-										$badge_class = $toggle_on ? 'dlt-ds-badge-on' : 'dlt-ds-badge-off';
-										$badge_text  = $toggle_on ? __( 'On', 'directorist-listing-tools' ) : __( 'Off', 'directorist-listing-tools' );
-									?>
-									<tr class="dlt-ds-row <?php echo $toggle_on ? 'is-active' : 'is-inactive'; ?>"
-										data-option-key="<?php echo esc_attr( $key ); ?>">
-
-										<td class="dlt-ds-label-cell">
-											<strong><?php echo esc_html( $setting['label'] ); ?></strong>
-											<?php if ( $is_inverse ) : ?>
-												<span class="dlt-ds-inverse-note">
-													<?php esc_html_e( '(ON = hides / disables)', 'directorist-listing-tools' ); ?>
-												</span>
-											<?php endif; ?>
-											<code class="dlt-ds-option-key"><?php echo esc_html( $key ); ?></code>
-										</td>
-
-										<td class="dlt-ds-desc-cell">
-											<?php echo esc_html( $setting['description'] ); ?>
-										</td>
-
-										<td class="dlt-ds-toggle-cell">
-											<label class="dlt-ds-toggle" title="<?php echo esc_attr( $setting['label'] ); ?>">
-												<input
-													type="checkbox"
-													class="dlt-ds-toggle-input"
-													data-option-key="<?php echo esc_attr( $key ); ?>"
-													data-label="<?php echo esc_attr( $setting['label'] ); ?>"
-													<?php checked( $toggle_on, true ); ?>
-												/>
-												<span class="dlt-ds-toggle-slider"></span>
-											</label>
-											<span class="dlt-ds-badge <?php echo esc_attr( $badge_class ); ?>">
-												<?php echo esc_html( $badge_text ); ?>
-											</span>
-											<span class="dlt-ds-spinner spinner" style="display:none;float:none;margin:0 4px;"></span>
-										</td>
-									</tr>
-									<?php endforeach; ?>
-								</tbody>
-							</table>
-						</div><!-- .inside -->
-					</div><!-- .dlt-ds-section -->
-
+			<?php /* ── Tab Navigation ──────────────────────────────────────── */ ?>
+			<nav class="nav-tab-wrapper dlt-ds-tab-nav">
+				<?php foreach ( $tabs as $tab_id => $tab ) : ?>
+					<a href="#"
+					   class="nav-tab dlt-ds-tab-link<?php echo $tab_id === $first_tab ? ' nav-tab-active' : ''; ?>"
+					   data-tab="<?php echo esc_attr( $tab_id ); ?>"
+					   aria-selected="<?php echo $tab_id === $first_tab ? 'true' : 'false'; ?>">
+						<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?> dlt-tab-icon"></span>
+						<?php echo esc_html( $tab['label'] ); ?>
+					</a>
 				<?php endforeach; ?>
-			</div><!-- .dlt-ds-sections -->
+			</nav>
 
+			<?php /* ── Thumbnail Tab Panel ─────────────────────────────────── */ ?>
+			<div class="dlt-ds-tab-panel" id="dlt-tab-thumbnail">
+				<?php if ( empty( $directory_types ) ) : ?>
+					<div class="notice notice-warning inline" style="margin:16px 0;"><p>
+						<?php esc_html_e( 'No directory types found. Please create a directory type in Directorist first.', 'directorist-listing-tools' ); ?>
+					</p></div>
+				<?php else : ?>
+					<p class="dlt-ds-panel-intro">
+						<?php esc_html_e( 'Toggle thumbnail visibility for Grid and List views for the selected directory type above. These settings are saved per-directory in term meta.', 'directorist-listing-tools' ); ?>
+					</p>
+					<table class="dlt-ds-table widefat" id="dlt-ds-directory-table">
+						<thead>
+							<tr>
+								<th style="width:42%;"><?php esc_html_e( 'View Option', 'directorist-listing-tools' ); ?></th>
+								<th><?php esc_html_e( 'Description', 'directorist-listing-tools' ); ?></th>
+								<th style="width:160px;text-align:center;"><?php esc_html_e( 'Status', 'directorist-listing-tools' ); ?></th>
+							</tr>
+						</thead>
+						<tbody id="dlt-ds-directory-tbody">
+							<tr>
+								<td colspan="3" style="text-align:center;padding:22px;color:#646970;">
+									<span class="spinner is-active" style="float:none;"></span>
+									<?php esc_html_e( 'Loading…', 'directorist-listing-tools' ); ?>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				<?php endif; ?>
+			</div>
+
+			<?php /* ── Global Settings Tab Panels (one per section) ──────────── */ ?>
+			<?php foreach ( array( 'all_listings_header', 'card_display', 'single_listing', 'map_popup' ) as $section_id ) : ?>
+				<?php
+				if ( empty( $this->sections[ $section_id ] ) || empty( $grouped[ $section_id ] ) ) {
+					continue;
+				}
+				$section = $this->sections[ $section_id ];
+				?>
+				<div class="dlt-ds-tab-panel" id="dlt-tab-<?php echo esc_attr( $section_id ); ?>" style="display:none;">
+
+					<?php if ( ! empty( $section['description'] ) ) : ?>
+						<p class="dlt-ds-panel-intro"><?php echo esc_html( $section['description'] ); ?></p>
+					<?php endif; ?>
+
+					<table class="dlt-ds-table widefat">
+						<thead>
+							<tr>
+								<th style="width:42%;"><?php esc_html_e( 'Option', 'directorist-listing-tools' ); ?></th>
+								<th><?php esc_html_e( 'Description', 'directorist-listing-tools' ); ?></th>
+								<th style="width:130px;text-align:center;"><?php esc_html_e( 'Status', 'directorist-listing-tools' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $grouped[ $section_id ] as $key => $setting ) :
+								$is_enabled  = $current_values[ $key ];
+								$is_inverse  = ! empty( $setting['inverse'] );
+								$toggle_on   = $is_enabled;
+								$badge_class = $toggle_on ? 'dlt-ds-badge-on' : 'dlt-ds-badge-off';
+								$badge_text  = $toggle_on ? __( 'On', 'directorist-listing-tools' ) : __( 'Off', 'directorist-listing-tools' );
+							?>
+							<tr class="dlt-ds-row <?php echo $toggle_on ? 'is-active' : 'is-inactive'; ?>"
+								data-option-key="<?php echo esc_attr( $key ); ?>">
+
+								<td class="dlt-ds-label-cell">
+									<strong><?php echo esc_html( $setting['label'] ); ?></strong>
+									<?php if ( $is_inverse ) : ?>
+										<span class="dlt-ds-inverse-note">
+											<?php esc_html_e( '(ON = hides / disables)', 'directorist-listing-tools' ); ?>
+										</span>
+									<?php endif; ?>
+									<code class="dlt-ds-option-key"><?php echo esc_html( $key ); ?></code>
+								</td>
+
+								<td class="dlt-ds-desc-cell">
+									<?php echo esc_html( $setting['description'] ); ?>
+								</td>
+
+								<td class="dlt-ds-toggle-cell">
+									<label class="dlt-ds-toggle" title="<?php echo esc_attr( $setting['label'] ); ?>">
+										<input
+											type="checkbox"
+											class="dlt-ds-toggle-input"
+											data-option-key="<?php echo esc_attr( $key ); ?>"
+											data-label="<?php echo esc_attr( $setting['label'] ); ?>"
+											<?php checked( $toggle_on, true ); ?>
+										/>
+										<span class="dlt-ds-toggle-slider"></span>
+									</label>
+									<span class="dlt-ds-badge <?php echo esc_attr( $badge_class ); ?>">
+										<?php echo esc_html( $badge_text ); ?>
+									</span>
+									<span class="dlt-ds-spinner spinner" style="display:none;float:none;margin:0 4px;"></span>
+								</td>
+							</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+			<?php endforeach; ?>
+
+			<?php /* ── Listings With Map Tab Panel ──────────────────────────── */ ?>
+			<?php if ( $lwm_active ) : ?>
+				<div class="dlt-ds-tab-panel" id="dlt-tab-listings_with_map" style="display:none;">
+					<p class="dlt-ds-panel-intro">
+						<?php esc_html_e( 'Settings for the "Directorist — Listings With Map" extension. These global settings are stored in the atbdp_option WordPress option and apply to all Listings With Map shortcodes sitewide.', 'directorist-listing-tools' ); ?>
+					</p>
+					<table class="dlt-ds-table widefat">
+						<thead>
+							<tr>
+								<th style="width:42%;"><?php esc_html_e( 'Option', 'directorist-listing-tools' ); ?></th>
+								<th><?php esc_html_e( 'Description', 'directorist-listing-tools' ); ?></th>
+								<th style="width:180px;text-align:center;"><?php esc_html_e( 'Value', 'directorist-listing-tools' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $this->lwm_settings as $key => $setting ) :
+								$current_val = isset( $lwm_values[ $key ] ) ? $lwm_values[ $key ] : $setting['default'];
+								$is_toggle   = ( 'toggle' === $setting['type'] );
+								$row_class   = $is_toggle ? ( $current_val ? 'is-active' : 'is-inactive' ) : '';
+							?>
+							<tr class="dlt-ds-row dlt-ds-lwm-row <?php echo esc_attr( $row_class ); ?>"
+								data-option-key="<?php echo esc_attr( $key ); ?>">
+
+								<td class="dlt-ds-label-cell">
+									<strong><?php echo esc_html( $setting['label'] ); ?></strong>
+									<code class="dlt-ds-option-key"><?php echo esc_html( $key ); ?></code>
+								</td>
+
+								<td class="dlt-ds-desc-cell">
+									<?php echo esc_html( $setting['description'] ); ?>
+								</td>
+
+								<td class="dlt-ds-toggle-cell">
+									<?php if ( 'select' === $setting['type'] ) : ?>
+										<select class="dlt-ds-lwm-select"
+												data-option-key="<?php echo esc_attr( $key ); ?>"
+												data-label="<?php echo esc_attr( $setting['label'] ); ?>">
+											<?php foreach ( $setting['options'] as $opt_val => $opt_label ) : ?>
+												<option value="<?php echo esc_attr( $opt_val ); ?>"
+													<?php selected( (string) $current_val, (string) $opt_val ); ?>>
+													<?php echo esc_html( $opt_label ); ?>
+												</option>
+											<?php endforeach; ?>
+										</select>
+										<span class="dlt-ds-spinner spinner" style="display:none;float:none;margin:0 6px;"></span>
+										<span class="dlt-ds-lwm-saved-msg" style="display:none;">
+											<?php esc_html_e( '&#10003; Saved', 'directorist-listing-tools' ); ?>
+										</span>
+									<?php else : ?>
+										<?php
+										$is_on       = (bool) $current_val;
+										$badge_class = $is_on ? 'dlt-ds-badge-on' : 'dlt-ds-badge-off';
+										$badge_text  = $is_on ? __( 'On', 'directorist-listing-tools' ) : __( 'Off', 'directorist-listing-tools' );
+										?>
+										<label class="dlt-ds-toggle" title="<?php echo esc_attr( $setting['label'] ); ?>">
+											<input
+												type="checkbox"
+												class="dlt-ds-lwm-toggle-input"
+												data-option-key="<?php echo esc_attr( $key ); ?>"
+												data-label="<?php echo esc_attr( $setting['label'] ); ?>"
+												<?php checked( $is_on, true ); ?>
+											/>
+											<span class="dlt-ds-toggle-slider"></span>
+										</label>
+										<span class="dlt-ds-badge <?php echo esc_attr( $badge_class ); ?>">
+											<?php echo esc_html( $badge_text ); ?>
+										</span>
+										<span class="dlt-ds-spinner spinner" style="display:none;float:none;margin:0 4px;"></span>
+									<?php endif; ?>
+								</td>
+							</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+			<?php endif; ?>
+
+			<?php /* ── Footer ──────────────────────────────────────────────── */ ?>
 			<div class="dlt-ds-footer">
 				<p>
 					<span class="dashicons dashicons-info-outline" style="vertical-align:middle;"></span>
 					<?php
 					printf(
 						/* translators: Option key name */
-						esc_html__( 'Global settings are stored in the %s WordPress option. Directory-type thumbnail settings are stored in term meta.', 'directorist-listing-tools' ),
+						esc_html__( 'Global settings are stored in the %s WordPress option. Directory-type thumbnail settings are stored per-directory in term meta.', 'directorist-listing-tools' ),
 						'<code>atbdp_option</code>'
 					);
 					?>

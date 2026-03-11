@@ -91,8 +91,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 		// Display Settings.
 		add_submenu_page(
 			$parent_slug,
-			esc_html__( 'Listing Display Settings', 'directorist-listing-tools' ),
-			esc_html__( 'Listing Display Settings', 'directorist-listing-tools' ),
+			esc_html__( 'Listing Settings', 'directorist-listing-tools' ),
+			esc_html__( 'Listing Settings', 'directorist-listing-tools' ),
 			'manage_options',
 			'directorist-listing-tools-display-settings',
 			array( $this, 'render_display_settings_page' )
@@ -107,6 +107,14 @@ class Directorist_Listing_Tools_Admin_Menu {
 			'directorist-listing-tools-plan-manager',
 			array( $this, 'render_plan_manager_page' )
 		);
+
+		// Hide the individual tools from the Directorist menu so only "Listing Settings"
+		// appears; users can navigate between tools using the tab bar rendered on each page.
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-bulk-delete' );
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-pending' );
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-type-manager' );
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-location-manager' );
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-plan-manager' );
 	}
 
 	/**
@@ -116,6 +124,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 		if ( ! dlt_current_user_can() ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
 		}
+
+		dlt_render_main_settings_tabs();
 
 		$bulk_delete = Directorist_Listing_Tools_Bulk_Delete::get_instance();
 		$bulk_delete->render_page();
@@ -129,6 +139,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
 		}
 
+		dlt_render_main_settings_tabs();
+
 		$pending_manager = Directorist_Listing_Tools_Pending_Manager::get_instance();
 		$pending_manager->render_page();
 	}
@@ -140,6 +152,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 		if ( ! dlt_current_user_can() ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
 		}
+
+		dlt_render_main_settings_tabs();
 
 		$type_manager = Directorist_Listing_Tools_Type_Manager::get_instance();
 		$type_manager->render_page();
@@ -153,6 +167,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
 		}
 
+		dlt_render_main_settings_tabs();
+
 		$location_manager = Directorist_Listing_Tools_Location_Manager::get_instance();
 		$location_manager->render_page();
 	}
@@ -165,6 +181,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
 		}
 
+		dlt_render_main_settings_tabs();
+
 		$plan_manager = Directorist_Listing_Tools_Plan_Manager::get_instance();
 		$plan_manager->render_page();
 	}
@@ -176,6 +194,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 		if ( ! dlt_current_user_can() ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
 		}
+
+		dlt_render_main_settings_tabs();
 
 		$display_settings = Directorist_Listing_Tools_Display_Settings::get_instance();
 		$display_settings->render_page();

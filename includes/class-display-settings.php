@@ -68,6 +68,7 @@ class Directorist_Listing_Tools_Display_Settings {
 		add_action( 'wp_ajax_dlt_load_directory_type_settings',  array( $this, 'handle_ajax_load_directory_type_settings' ) );
 		add_action( 'wp_ajax_dlt_toggle_directory_type_setting', array( $this, 'handle_ajax_toggle_directory_type_setting' ) );
 		add_action( 'wp_ajax_dlt_save_lwm_setting',              array( $this, 'handle_ajax_save_lwm_setting' ) );
+		add_action( 'wp_ajax_dlt_save_role_capability',          array( $this, 'handle_ajax_save_role_capability' ) );
 
 		add_filter( 'atbdp_all_listings_params', array( $this, 'inject_saved_display_params' ), 10, 1 );
 	}
@@ -256,6 +257,80 @@ class Directorist_Listing_Tools_Display_Settings {
 				'message'      => $message,
 				'option_key'   => $option_key,
 				'option_value' => $save_value,
+			)
+		);
+	}
+
+	// ────────────────────────────────────────────────────────────────
+	// AJAX: User Role Capability Settings
+	// ────────────────────────────────────────────────────────────────
+
+	/**
+	 * AJAX: Save a single role capability toggle (e.g. upload_files for subscribers).
+	 */
+	public function handle_ajax_save_role_capability() {
+		check_ajax_referer( 'dlt_admin_nonce', 'nonce' );
+
+		if ( ! dlt_current_user_can() ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'directorist-listing-tools' ) ) );
+		}
+
+		if ( ! function_exists( 'get_editable_roles' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/user.php';
+		}
+
+		$role_slug = isset( $_POST['role'] ) ? sanitize_key( wp_unslash( $_POST['role'] ) ) : '';
+		$cap_key   = isset( $_POST['capability'] ) ? sanitize_key( wp_unslash( $_POST['capability'] ) ) : '';
+		$value     = isset( $_POST['value'] ) ? rest_sanitize_boolean( $_POST['value'] ) : false;
+
+		if ( empty( $role_slug ) || empty( $cap_key ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid role or capability.', 'directorist-listing-tools' ) ) );
+		}
+
+		$schema = function_exists( 'dlt_get_role_capabilities_schema' ) ? dlt_get_role_capabilities_schema() : array();
+
+		if ( empty( $schema ) || ! isset( $schema[ $cap_key ] ) ) {
+			wp_send_json_error( array( 'message' => __( 'Unknown capability key.', 'directorist-listing-tools' ) ) );
+		}
+
+		// We do not allow changing administrator capabilities from here.
+		if ( 'administrator' === $role_slug ) {
+			wp_send_json_error( array( 'message' => __( 'Administrator capabilities are always enabled and cannot be changed here.', 'directorist-listing-tools' ) ) );
+		}
+
+		$role_obj = get_role( $role_slug );
+		if ( ! $role_obj ) {
+			wp_send_json_error( array( 'message' => __( 'Role not found.', 'directorist-listing-tools' ) ) );
+		}
+
+		$settings = function_exists( 'dlt_get_role_settings' ) ? dlt_get_role_settings() : array();
+		if ( ! isset( $settings[ $role_slug ] ) || ! is_array( $settings[ $role_slug ] ) ) {
+			$settings[ $role_slug ] = array();
+		}
+
+		$settings[ $role_slug ][ $cap_key ] = (bool) $value;
+		update_option( 'dlt_role_settings', $settings );
+
+		// Ensure capabilities are applied immediately.
+		if ( function_exists( 'dlt_apply_role_settings' ) ) {
+			dlt_apply_role_settings();
+		}
+
+		$meta   = $schema[ $cap_key ];
+		$status = $value ? __( 'Enabled', 'directorist-listing-tools' ) : __( 'Disabled', 'directorist-listing-tools' );
+
+		wp_send_json_success(
+			array(
+				'message'    => sprintf(
+					/* translators: 1: role name, 2: capability label, 3: enabled/disabled */
+					__( 'For role "%1$s", capability "%2$s" has been %3$s.', 'directorist-listing-tools' ),
+					$role_slug,
+					$meta['label'],
+					$status
+				),
+				'role'       => $role_slug,
+				'capability' => $cap_key,
+				'value'      => (bool) $value,
 			)
 		);
 	}
@@ -757,6 +832,15 @@ class Directorist_Listing_Tools_Display_Settings {
 		$lwm_active      = $this->is_listings_with_map_active();
 		$lwm_values      = $lwm_active ? $this->get_lwm_current_values() : array();
 
+		// User role capabilities schema and current values.
+		$role_schema   = function_exists( 'dlt_get_role_capabilities_schema' ) ? dlt_get_role_capabilities_schema() : array();
+		$role_settings = function_exists( 'dlt_get_role_settings' ) ? dlt_get_role_settings() : array();
+
+		if ( ! function_exists( 'get_editable_roles' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/user.php';
+		}
+		$all_roles = get_editable_roles();
+
 		// Group global settings by section.
 		$grouped = array();
 		foreach ( $this->settings as $key => $setting ) {
@@ -792,6 +876,10 @@ class Directorist_Listing_Tools_Display_Settings {
 				'icon'  => 'dashicons-location',
 			);
 		}
+		$tabs['user_roles'] = array(
+			'label' => __( 'User Roles', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-admin-users',
+		);
 
 		$first_tab = array_key_first( $tabs );
 		?>
@@ -1023,6 +1111,84 @@ class Directorist_Listing_Tools_Display_Settings {
 					</table>
 				</div>
 			<?php endif; ?>
+
+			<?php /* ── User Roles Tab Panel ────────────────────────────────── */ ?>
+			<div class="dlt-ds-tab-panel" id="dlt-tab-user_roles" style="display:none;">
+				<p class="dlt-ds-panel-intro">
+					<?php esc_html_e( 'Control which WordPress roles can upload listing media and access the Directorist Listing Tools admin pages. Administrators always have full access and cannot be restricted here.', 'directorist-listing-tools' ); ?>
+				</p>
+
+				<?php if ( empty( $role_schema ) || empty( $all_roles ) ) : ?>
+					<div class="notice notice-warning inline" style="margin:16px 0;">
+						<p><?php esc_html_e( 'No editable roles or capabilities found.', 'directorist-listing-tools' ); ?></p>
+					</div>
+				<?php else : ?>
+					<table class="dlt-ds-table widefat dlt-ds-roles-table">
+						<thead>
+							<tr>
+								<th style="width:24%;"><?php esc_html_e( 'Role', 'directorist-listing-tools' ); ?></th>
+								<?php foreach ( $role_schema as $cap_key => $meta ) : ?>
+									<th style="width:18%;text-align:center;">
+										<?php echo esc_html( $meta['label'] ); ?>
+									</th>
+								<?php endforeach; ?>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $all_roles as $role_slug => $role_data ) : ?>
+								<?php
+								$role_obj    = get_role( $role_slug );
+								$is_admin    = ( 'administrator' === $role_slug );
+								$role_name   = isset( $role_data['name'] ) ? $role_data['name'] : $role_slug;
+								$cap_values  = isset( $role_settings[ $role_slug ] ) && is_array( $role_settings[ $role_slug ] ) ? $role_settings[ $role_slug ] : array();
+								?>
+								<tr class="dlt-ds-role-row" data-role="<?php echo esc_attr( $role_slug ); ?>">
+									<td class="dlt-ds-label-cell">
+										<strong><?php echo esc_html( $role_name ); ?></strong>
+										<code class="dlt-ds-option-key"><?php echo esc_html( $role_slug ); ?></code>
+										<?php if ( $is_admin ) : ?>
+											<div class="description" style="margin-top:4px;color:#646970;">
+												<?php esc_html_e( 'Administrators always have all capabilities.', 'directorist-listing-tools' ); ?>
+											</div>
+										<?php endif; ?>
+									</td>
+
+									<?php foreach ( $role_schema as $cap_key => $meta ) : ?>
+										<?php
+										// Admin: always treated as enabled.
+										if ( $is_admin ) {
+											$is_enabled = true;
+										} else {
+											$is_enabled = ! empty( $cap_values[ $cap_key ] ) || ( $role_obj && $role_obj->has_cap( $cap_key ) );
+										}
+										$badge_class = $is_enabled ? 'dlt-ds-badge-on' : 'dlt-ds-badge-off';
+										$badge_text  = $is_enabled ? __( 'On', 'directorist-listing-tools' ) : __( 'Off', 'directorist-listing-tools' );
+										?>
+										<td class="dlt-ds-toggle-cell" style="text-align:center;">
+											<label class="dlt-ds-toggle" title="<?php echo esc_attr( $meta['label'] ); ?>">
+												<input
+													type="checkbox"
+													class="dlt-ds-role-cap-input"
+													data-role="<?php echo esc_attr( $role_slug ); ?>"
+													data-capability="<?php echo esc_attr( $cap_key ); ?>"
+													data-label="<?php echo esc_attr( $meta['label'] ); ?>"
+													<?php checked( $is_enabled, true ); ?>
+													<?php disabled( $is_admin, true ); ?>
+												/>
+												<span class="dlt-ds-toggle-slider"></span>
+											</label>
+											<span class="dlt-ds-badge <?php echo esc_attr( $badge_class ); ?>">
+												<?php echo esc_html( $badge_text ); ?>
+											</span>
+											<span class="dlt-ds-spinner spinner" style="display:none;float:none;margin:0 4px;"></span>
+										</td>
+									<?php endforeach; ?>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
+			</div>
 
 			<?php /* ── Footer ──────────────────────────────────────────────── */ ?>
 			<div class="dlt-ds-footer">

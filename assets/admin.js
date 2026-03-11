@@ -827,6 +827,70 @@
 			} );
 		} );
 
+		/* ── User Roles — Capability Toggles (AJAX on change) ─────────── */
+
+		$( document ).on( 'change', '.dlt-ds-role-cap-input', function () {
+			var $input      = $( this );
+			var role        = $input.data( 'role' );
+			var capability  = $input.data( 'capability' );
+			var label       = $input.data( 'label' );
+			var newValue    = $input.is( ':checked' ) ? 1 : 0;
+			var $cell       = $input.closest( '.dlt-ds-toggle-cell' );
+			var $badge      = $cell.find( '.dlt-ds-badge' );
+			var $spinner    = $cell.find( '.dlt-ds-spinner' );
+			var $toggleWrap = $input.closest( '.dlt-ds-toggle' );
+
+			// Administrators are hard-locked in PHP; JS guard is just extra safety.
+			if ( role === 'administrator' ) {
+				$input.prop( 'checked', true );
+				return;
+			}
+
+			$spinner.show();
+			$toggleWrap.addClass( 'is-loading' );
+			$input.prop( 'disabled', true );
+
+			$.ajax( {
+				url  : dltAdmin.ajaxUrl,
+				type : 'POST',
+				data : {
+					action     : 'dlt_save_role_capability',
+					nonce      : dltAdmin.nonce,
+					role       : role,
+					capability : capability,
+					value      : newValue
+				},
+				success: function ( response ) {
+					$spinner.hide();
+					$toggleWrap.removeClass( 'is-loading' );
+					$input.prop( 'disabled', false );
+
+					if ( response.success ) {
+						if ( newValue ) {
+							$badge.text( 'On' ).removeClass( 'dlt-ds-badge-off' ).addClass( 'dlt-ds-badge-on' );
+						} else {
+							$badge.text( 'Off' ).removeClass( 'dlt-ds-badge-on' ).addClass( 'dlt-ds-badge-off' );
+						}
+						dltDsShowNotice( response.data.message, 'success' );
+					} else {
+						// Revert UI on error.
+						$input.prop( 'checked', ! newValue );
+						var errMsg = ( response.data && response.data.message )
+							? response.data.message
+							: 'An error occurred while saving "' + label + '" for this role.';
+						dltDsShowNotice( errMsg, 'error' );
+					}
+				},
+				error: function () {
+					$spinner.hide();
+					$toggleWrap.removeClass( 'is-loading' );
+					$input.prop( 'disabled', false );
+					$input.prop( 'checked', ! newValue );
+					dltDsShowNotice( 'Server error while saving "' + label + '" for this role. Please try again.', 'error' );
+				}
+			} );
+		} );
+
 	} // end .dlt-display-settings-wrap
 
 	/* ================================================================

@@ -188,6 +188,7 @@ function dlt_render_main_settings_tabs() {
 		'directorist-listing-tools-type-manager'     => __( 'Type Manager', 'directorist-listing-tools' ),
 		'directorist-listing-tools-location-manager' => __( 'Location Manager', 'directorist-listing-tools' ),
 		'directorist-listing-tools-plan-manager'     => __( 'Plan Prices', 'directorist-listing-tools' ),
+		'directorist-listing-tools-file-manager'     => __( 'File Managing', 'directorist-listing-tools' ),
 	);
 
 	?>

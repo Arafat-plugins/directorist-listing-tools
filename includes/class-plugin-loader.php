@@ -54,6 +54,7 @@ class Directorist_Listing_Tools_Loader {
 		require_once DLT_DIR . 'includes/class-display-settings.php';
 		require_once DLT_DIR . 'includes/class-plan-manager.php';
 		require_once DLT_DIR . 'includes/class-admin-menu.php';
+		require_once DLT_DIR . 'includes/class-file-manager.php';
 
 		// Instantiate classes early to register hooks.
 		Directorist_Listing_Tools_Bulk_Delete::get_instance();
@@ -63,6 +64,7 @@ class Directorist_Listing_Tools_Loader {
 		Directorist_Listing_Tools_Display_Settings::get_instance();
 		Directorist_Listing_Tools_Plan_Manager::get_instance();
 		Directorist_Listing_Tools_Admin_Menu::get_instance();
+		Directorist_Listing_Tools_File_Manager::get_instance();
 	}
 
 	/**
@@ -117,6 +119,40 @@ class Directorist_Listing_Tools_Loader {
 				'page'    => $our_page,
 			)
 		);
+
+		// File Manager page: enqueue its own script and styles.
+		if ( $our_page === 'directorist-listing-tools-file-manager' ) {
+			$fm_js_ver  = file_exists( DLT_DIR . 'assets/file-manager.js' ) ? filemtime( DLT_DIR . 'assets/file-manager.js' ) : DLT_VERSION;
+			$fm_css_ver = file_exists( DLT_DIR . 'assets/file-manager.css' ) ? filemtime( DLT_DIR . 'assets/file-manager.css' ) : DLT_VERSION;
+
+			// Load WordPress code editor (CodeMirror) for safe in-admin editing.
+			wp_enqueue_code_editor( array( 'type' => 'text/plain' ) );
+			wp_enqueue_script( 'code-editor' );
+			wp_enqueue_style( 'code-editor' );
+
+			wp_enqueue_style(
+				'dlt-file-manager-style',
+				DLT_URL . 'assets/file-manager.css',
+				array(),
+				$fm_css_ver
+			);
+			wp_enqueue_script(
+				'dlt-file-manager-script',
+				DLT_URL . 'assets/file-manager.js',
+				array( 'jquery', 'code-editor' ),
+				$fm_js_ver,
+				true
+			);
+
+			$editor_settings = wp_enqueue_code_editor( array( 'type' => 'text/plain' ) );
+			if ( $editor_settings ) {
+				wp_add_inline_script(
+					'dlt-file-manager-script',
+					'window.dltFmEditorSettings = ' . wp_json_encode( $editor_settings ) . ';',
+					'before'
+				);
+			}
+		}
 	}
 }
 

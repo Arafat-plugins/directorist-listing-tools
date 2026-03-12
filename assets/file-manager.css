@@ -1,0 +1,257 @@
+/* File Manager – Directorist Listing Tools */
+
+.dlt-file-manager-wrap {
+	margin-top: 12px;
+}
+
+.dlt-file-manager-wrap .description {
+	margin-bottom: 14px;
+	color: #646970;
+}
+
+.dlt-fm-toolbar {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 16px;
+	padding: 10px 12px;
+	background: #f6f7f7;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+}
+
+.dlt-fm-breadcrumb {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: 13px;
+}
+
+.dlt-fm-breadcrumb-sep {
+	color: #787c82;
+	margin: 0 4px;
+}
+
+.dlt-fm-breadcrumb-item {
+	text-decoration: none;
+	color: #2271b1;
+}
+
+.dlt-fm-breadcrumb-item:hover {
+	color: #135e96;
+	text-decoration: underline;
+}
+
+.dlt-fm-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.dlt-fm-btn .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+.dlt-fm-upload-input {
+	position: absolute;
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	z-index: -1;
+}
+
+.dlt-fm-list-wrap {
+	border: 1px solid #c3c4c7;
+	background: #fff;
+	border-radius: 4px;
+	min-height: 200px;
+	position: relative;
+}
+
+.dlt-fm-loading {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.9);
+	font-size: 14px;
+	color: #646970;
+}
+
+.dlt-fm-list {
+	padding: 8px 0;
+}
+
+.dlt-fm-row {
+	display: flex;
+	align-items: center;
+	padding: 8px 12px;
+	border-bottom: 1px solid #f0f0f1;
+	gap: 12px;
+}
+
+.dlt-fm-row:last-child {
+	border-bottom: none;
+}
+
+.dlt-fm-row:hover {
+	background: #f6f7f7;
+}
+
+.dlt-fm-dir .dlt-fm-name {
+	font-weight: 500;
+}
+
+.dlt-fm-icon {
+	flex-shrink: 0;
+	width: 24px;
+	height: 24px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #2271b1;
+}
+
+.dlt-fm-name {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.dlt-fm-name.dlt-fm-nav {
+	color: #2271b1;
+	text-decoration: none;
+}
+
+.dlt-fm-name.dlt-fm-nav:hover {
+	text-decoration: underline;
+}
+
+.dlt-fm-size {
+	width: 90px;
+	flex-shrink: 0;
+	color: #646970;
+	font-size: 13px;
+}
+
+.dlt-fm-mtime {
+	width: 160px;
+	flex-shrink: 0;
+	color: #646970;
+	font-size: 13px;
+}
+
+.dlt-fm-actions {
+	flex-shrink: 0;
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+
+.dlt-fm-actions .button {
+	margin: 0;
+}
+
+.dlt-fm-empty {
+	padding: 32px 16px;
+	text-align: center;
+	color: #646970;
+	font-size: 14px;
+}
+
+/* Modal */
+.dlt-fm-modal {
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 100000;
+}
+
+.dlt-fm-modal-content {
+	background: #fff;
+	border-radius: 4px;
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+	min-width: 360px;
+	max-width: 90vw;
+}
+
+.dlt-fm-modal-content {
+	/* Allow large editor modals */
+	max-height: 90vh;
+	overflow: hidden;
+}
+
+.dlt-fm-modal-title {
+	margin: 0;
+	padding: 16px 20px;
+	border-bottom: 1px solid #dcdcde;
+	font-size: 16px;
+}
+
+.dlt-fm-modal-body {
+	padding: 20px;
+	overflow: auto;
+	max-height: calc(90vh - 120px);
+}
+
+.dlt-fm-modal-body p {
+	margin: 0 0 12px;
+}
+
+.dlt-fm-modal-body label {
+	display: block;
+	margin-bottom: 6px;
+	font-weight: 600;
+}
+
+.dlt-fm-modal-body .dlt-fm-prompt-input {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.dlt-fm-modal-footer {
+	padding: 12px 20px;
+	border-top: 1px solid #dcdcde;
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.dlt-fm-editor-wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.dlt-fm-editor-path {
+	color: #1d2327;
+	font-size: 13px;
+}
+
+.dlt-fm-editor-textarea {
+	width: 100%;
+	min-height: 55vh;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.dlt-fm-modal-footer .button {
+	margin: 0;
+}

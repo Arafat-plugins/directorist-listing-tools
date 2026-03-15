@@ -176,6 +176,18 @@ function dlt_get_listing_types_taxonomy() {
  *
  * This appears above each tools page so they feel like a single tabbed interface.
  */
+/**
+ * Check if Directorist Social Login extension is active.
+ *
+ * @return bool
+ */
+function dlt_is_social_login_active() {
+	if ( ! function_exists( 'is_plugin_active' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+	return is_plugin_active( 'directorist-social-login/directorist-social-login.php' ) || class_exists( 'Directorist_Social_Login' );
+}
+
 function dlt_render_main_settings_tabs() {
 	$current_page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 
@@ -190,6 +202,9 @@ function dlt_render_main_settings_tabs() {
 		'directorist-listing-tools-plan-manager'     => __( 'Plan Prices', 'directorist-listing-tools' ),
 		'directorist-listing-tools-file-manager'     => __( 'File Managing', 'directorist-listing-tools' ),
 	);
+	if ( dlt_is_social_login_active() ) {
+		$tabs['directorist-listing-tools-social-login'] = __( 'Social Login', 'directorist-listing-tools' );
+	}
 
 	?>
 	<div class="wrap dlt-main-settings-wrap">

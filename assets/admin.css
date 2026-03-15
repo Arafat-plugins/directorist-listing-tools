@@ -615,3 +615,153 @@
 	animation: dltPmSavedFlash 1.5s ease forwards;
 }
 
+/* ── Social Login Diagnostics ───────────────────────────────────────────── */
+
+.dlt-social-login-diagnostics-wrap .description {
+	margin-bottom: 14px;
+}
+
+.dlt-sld-config-table td,
+.dlt-sld-config-table th {
+	vertical-align: middle;
+}
+
+.dlt-sld-config-table code {
+	font-size: 12px;
+	word-break: break-all;
+}
+
+.dlt-sld-empty {
+	color: #787c82;
+}
+
+.dlt-sld-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.dlt-sld-actions .button .dashicons {
+	vertical-align: middle;
+	margin-right: 4px;
+	transition: transform .4s linear;
+}
+
+.dlt-sld-spinner {
+	float: none !important;
+	margin: 0 !important;
+}
+
+/* Cards */
+.dlt-sld-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px 20px;
+	margin-bottom: 14px;
+	box-shadow: 0 1px 2px rgba(0,0,0,.04);
+	max-width: 700px;
+}
+
+.dlt-sld-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.dlt-sld-card-header h3 {
+	margin: 0;
+	font-size: 15px;
+}
+
+/* Badges */
+.dlt-sld-badge {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: .04em;
+	padding: 3px 8px;
+	border-radius: 3px;
+}
+
+.dlt-sld-badge.dlt-sld-ok {
+	background: #d7f0d2;
+	color: #1a7919;
+}
+
+.dlt-sld-badge.dlt-sld-warn {
+	background: #fcf9e8;
+	color: #996600;
+}
+
+.dlt-sld-badge.dlt-sld-fail {
+	background: #fcf0f1;
+	color: #d63638;
+}
+
+/* Status row */
+.dlt-sld-status {
+	display: flex;
+	align-items: flex-start;
+	gap: 7px;
+	margin-bottom: 8px;
+}
+
+.dlt-sld-status .dashicons {
+	flex-shrink: 0;
+	font-size: 20px;
+	width: 20px;
+	height: 20px;
+	margin-top: 1px;
+}
+
+.dlt-sld-status.dlt-sld-ok  { color: #00a32a; }
+.dlt-sld-status.dlt-sld-warn { color: #996600; }
+.dlt-sld-status.dlt-sld-fail { color: #d63638; }
+
+/* Detail */
+.dlt-sld-detail {
+	margin: 0;
+	font-size: 13px;
+	color: #50575e;
+	line-height: 1.55;
+	padding-left: 27px;
+}
+
+/* General notices */
+.dlt-sld-notice {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	padding: 12px 16px;
+	margin-bottom: 14px;
+	max-width: 700px;
+	border-left: 4px solid;
+	border-radius: 0 4px 4px 0;
+}
+
+.dlt-sld-notice .dashicons {
+	flex-shrink: 0;
+	margin-top: 1px;
+}
+
+.dlt-sld-notice-warning {
+	border-color: #dba617;
+	background: #fcf9e8;
+	color: #3c434a;
+}
+
+/* Error (request-level) */
+.dlt-sld-error {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 16px;
+	background: #fcf0f1;
+	border-left: 4px solid #d63638;
+	border-radius: 0 4px 4px 0;
+	max-width: 700px;
+	color: #3c434a;
+}
+

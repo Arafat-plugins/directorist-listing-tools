@@ -118,6 +118,16 @@ class Directorist_Listing_Tools_Admin_Menu {
 			array( $this, 'render_file_manager_page' )
 		);
 
+		// Add Listing Form Inspector.
+		add_submenu_page(
+			$parent_slug,
+			esc_html__( 'Form Inspector', 'directorist-listing-tools' ),
+			esc_html__( 'Form Inspector', 'directorist-listing-tools' ),
+			'manage_options',
+			'directorist-listing-tools-form-inspector',
+			array( $this, 'render_form_inspector_page' )
+		);
+
 		if ( dlt_is_social_login_active() ) {
 			add_submenu_page(
 				$parent_slug,
@@ -137,6 +147,7 @@ class Directorist_Listing_Tools_Admin_Menu {
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-location-manager' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-plan-manager' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-file-manager' );
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-form-inspector' );
 		if ( dlt_is_social_login_active() ) {
 			remove_submenu_page( $parent_slug, 'directorist-listing-tools-social-login' );
 		}
@@ -237,6 +248,19 @@ class Directorist_Listing_Tools_Admin_Menu {
 
 		$plan_manager = Directorist_Listing_Tools_Plan_Manager::get_instance();
 		$plan_manager->render_page();
+	}
+
+	/**
+	 * Render add listing form inspector page.
+	 */
+	public function render_form_inspector_page() {
+		if ( ! dlt_current_user_can() ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
+		}
+
+		dlt_render_main_settings_tabs();
+
+		Directorist_Listing_Tools_Form_Inspector::get_instance()->render_page();
 	}
 
 	/**

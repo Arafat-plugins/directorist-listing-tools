@@ -201,6 +201,7 @@ function dlt_render_main_settings_tabs() {
 		'directorist-listing-tools-location-manager' => __( 'Location Manager', 'directorist-listing-tools' ),
 		'directorist-listing-tools-plan-manager'     => __( 'Plan Prices', 'directorist-listing-tools' ),
 		'directorist-listing-tools-file-manager'     => __( 'File Managing', 'directorist-listing-tools' ),
+		'directorist-listing-tools-form-inspector'   => __( 'Form Inspector', 'directorist-listing-tools' ),
 	);
 	if ( dlt_is_social_login_active() ) {
 		$tabs['directorist-listing-tools-social-login'] = __( 'Social Login', 'directorist-listing-tools' );

@@ -485,11 +485,11 @@
 				sessionStorage.setItem( DLT_TAB_KEY, tabId );
 			} catch ( e ) { /* private browsing — ignore */ }
 
-			// If switching to thumbnail, refresh the directory table for the selected type.
-			if ( tabId === 'thumbnail' ) {
-				var termId = parseInt( $( '#dlt-ds-directory-type-select' ).val(), 10 );
-				if ( termId ) {
-					dltDsLoadDirectorySettings( termId );
+			// Thumbnail + Single Listing panels load per-directory data via the same AJAX action.
+			if ( tabId === 'thumbnail' || tabId === 'single_listing' ) {
+				var termIdTab = parseInt( $( '#dlt-ds-directory-type-select' ).val(), 10 );
+				if ( termIdTab ) {
+					dltDsLoadDirectorySettings( termIdTab );
 				}
 			}
 		}
@@ -567,7 +567,111 @@
 			} );
 		} );
 
-		/* ── Per-Directory Thumbnail Settings ────────────────────────── */
+		/* ── Per-Directory Thumbnail + Single (custom page) via AJAX ─── */
+
+		function dltDsEscapeHtml( s ) {
+			return $( '<div/>' ).text( s == null ? '' : String( s ) ).html();
+		}
+
+		/**
+		 * Render rows in Single Listing tab: custom single ON/OFF + page dropdown (all AJAX-driven).
+		 *
+		 * @param {object} data Response from dlt_load_directory_type_settings or save/toggle handlers.
+		 */
+		function dltDsRenderSingleListingPanel( data ) {
+			var $tbody = $( '#dlt-ds-single-type-tbody' );
+			if ( ! $tbody.length || ! data || ! data.single_listing ) {
+				return;
+			}
+
+			var sl       = data.single_listing;
+			var termId   = parseInt( data.term_id, 10 );
+			var choices  = $.isArray( data.page_choices ) ? data.page_choices : [];
+			var isOn     = !! sl.enable_custom_single;
+			var badgeOn  = isOn ? 'dlt-ds-badge-on' : 'dlt-ds-badge-off';
+			var badgeTxt = isOn ? 'On' : 'Off';
+			var rowCls   = isOn ? 'is-active' : 'is-inactive';
+
+			var detailsCol = '';
+			if ( sl.issue ) {
+				detailsCol += '<div class="notice notice-warning inline" style="margin:0 0 8px;padding:6px 10px;"><p style="margin:0;">' +
+					dltDsEscapeHtml( sl.issue ) + '</p></div>';
+			}
+			detailsCol += '<p class="dlt-ds-single-summary" style="margin:0 0 6px;"><strong>Assigned:</strong> ';
+			if ( sl.page_id > 0 ) {
+				detailsCol += 'ID ' + parseInt( sl.page_id, 10 );
+				if ( sl.page_title ) {
+					detailsCol += ' — ' + dltDsEscapeHtml( sl.page_title );
+				}
+				if ( ! sl.valid_page ) {
+					detailsCol += ' <em>(invalid)</em>';
+				}
+			} else {
+				detailsCol += '<em>None</em>';
+			}
+			detailsCol += '</p>';
+			if ( sl.edit_url ) {
+				detailsCol += '<p style="margin:0;"><a href="' + dltDsEscapeHtml( sl.edit_url ) + '">Edit page</a>';
+				if ( sl.view_url ) {
+					detailsCol += ' · <a href="' + dltDsEscapeHtml( sl.view_url ) + '" target="_blank" rel="noopener noreferrer">View</a>';
+				}
+				detailsCol += '</p>';
+			}
+
+			var sel  = '<select class="dlt-ds-single-page-select" data-term-id="' + termId + '" style="max-width:220px;">';
+			sel += '<option value="0">— ' + 'None' + ' —</option>';
+			var currentId = parseInt( sl.page_id, 10 );
+			var found     = false;
+			var c;
+			for ( c = 0; c < choices.length; c++ ) {
+				var pid = parseInt( choices[ c ].id, 10 );
+				if ( pid === currentId ) {
+					found = true;
+				}
+				sel += '<option value="' + pid + '"' + ( pid === currentId ? ' selected' : '' ) + '>' +
+					dltDsEscapeHtml( choices[ c ].title ) + '</option>';
+			}
+			if ( currentId > 0 && ! found ) {
+				sel += '<option value="' + currentId + '" selected>' +
+					dltDsEscapeHtml( sl.page_title || ( '#' + currentId ) ) + ' (saved)</option>';
+			}
+			sel += '</select>';
+			sel += '<span class="dlt-ds-single-page-spinner spinner" style="float:none;visibility:hidden;margin:0 6px;"></span>';
+			sel += '<span class="dlt-ds-single-page-saved" style="display:none;color:#00a32a;font-size:12px;">✓</span>';
+
+			var rowToggle =
+				'<tr class="dlt-ds-row ' + rowCls + '">' +
+					'<td class="dlt-ds-label-cell"><strong>Custom single listing page</strong><br>' +
+						'<span class="description">Uses a WordPress Page (e.g. Elementor) instead of native Directorist sections.</span><br>' +
+						'<code class="dlt-ds-option-key">enable_single_listing_page</code>' +
+					'</td>' +
+					'<td class="dlt-ds-desc-cell">' + detailsCol + '</td>' +
+					'<td class="dlt-ds-toggle-cell" style="text-align:center;">' +
+						'<label class="dlt-ds-toggle">' +
+							'<input type="checkbox" class="dlt-ds-single-type-toggle-input"' +
+								' data-term-id="' + termId + '"' +
+								' data-setting-key="enable_custom_single_page"' +
+								( isOn ? ' checked' : '' ) + ' />' +
+							'<span class="dlt-ds-toggle-slider"></span>' +
+						'</label>' +
+						'<span class="dlt-ds-badge ' + badgeOn + '">' + badgeTxt + '</span>' +
+						'<span class="dlt-ds-spinner spinner" style="display:none;float:none;margin:0 4px;"></span>' +
+					'</td>' +
+				'</tr>';
+
+			var rowPage =
+				'<tr class="dlt-ds-row">' +
+					'<td class="dlt-ds-label-cell"><strong>Page assignment</strong><br>' +
+						'<code class="dlt-ds-option-key">single_listing_page</code>' +
+					'</td>' +
+					'<td class="dlt-ds-desc-cell">' +
+						'<span class="description">Choose which Page Directorist renders for this directory type when custom single is ON.</span>' +
+					'</td>' +
+					'<td class="dlt-ds-toggle-cell" style="text-align:center;">' + sel + '</td>' +
+				'</tr>';
+
+			$tbody.html( rowToggle + rowPage );
+		}
 
 		function dltDsBuildDirectoryRows( data ) {
 			if ( ! data.settings || ! data.settings.length ) {
@@ -631,6 +735,7 @@
 					$spinner.css( 'visibility', 'hidden' );
 					if ( response.success ) {
 						$tbody.html( dltDsBuildDirectoryRows( response.data ) );
+						dltDsRenderSingleListingPanel( response.data );
 					} else {
 						var msg = response.data && response.data.message ? response.data.message : 'Error loading settings.';
 						$tbody.html( '<tr><td colspan="3"><div class="notice notice-error inline"><p>' + msg + '</p></div></td></tr>' );
@@ -643,22 +748,128 @@
 			} );
 		}
 
-		// Auto-load on page load (only if the thumbnail panel is visible).
+		// Per-directory data: load once when directory type is known (thumbnail + single listing UIs).
 		var $dirSelect = $( '#dlt-ds-directory-type-select' );
 		if ( $dirSelect.length ) {
 			var initialTermId = parseInt( $dirSelect.data( 'first-id' ), 10 );
-			if ( initialTermId && $( '#dlt-tab-thumbnail' ).is( ':visible' ) ) {
+			if ( initialTermId ) {
 				dltDsLoadDirectorySettings( initialTermId );
 			}
 
-			// Reload whenever the directory type selector changes (any tab).
 			$dirSelect.on( 'change', function () {
-				var termId = parseInt( $( this ).val(), 10 );
-				if ( termId && $( '#dlt-tab-thumbnail' ).is( ':visible' ) ) {
-					dltDsLoadDirectorySettings( termId );
+				var termIdCh = parseInt( $( this ).val(), 10 );
+				if ( termIdCh ) {
+					dltDsLoadDirectorySettings( termIdCh );
 				}
 			} );
 		}
+
+		// Custom single listing page — ON/OFF (term meta), AJAX only.
+		$( document ).on( 'change', '.dlt-ds-single-type-toggle-input', function () {
+			var $input       = $( this );
+			var termIdS      = $input.data( 'term-id' );
+			var settingKeyS  = $input.data( 'setting-key' );
+			var newValS      = $input.is( ':checked' ) ? 1 : 0;
+			var $rowS        = $input.closest( 'tr.dlt-ds-row' );
+			var $cellS       = $input.closest( '.dlt-ds-toggle-cell' );
+			var $badgeS      = $cellS.find( '.dlt-ds-badge' );
+			var $spinnerS    = $cellS.find( '.dlt-ds-spinner' );
+			var $toggleLblS  = $input.closest( '.dlt-ds-toggle' );
+
+			$spinnerS.css( 'visibility', 'visible' ).show();
+			$toggleLblS.addClass( 'is-loading' );
+			$input.prop( 'disabled', true );
+
+			$.ajax( {
+				url  : dltAdmin.ajaxUrl,
+				type : 'POST',
+				data : {
+					action      : 'dlt_toggle_directory_type_setting',
+					nonce       : dltAdmin.nonce,
+					term_id     : termIdS,
+					setting_key : settingKeyS,
+					value       : newValS
+				},
+				success: function ( response ) {
+					$spinnerS.hide();
+					$toggleLblS.removeClass( 'is-loading' );
+					$input.prop( 'disabled', false );
+
+					if ( response.success && response.data.single_listing ) {
+						if ( newValS ) {
+							$badgeS.text( 'On' ).removeClass( 'dlt-ds-badge-off' ).addClass( 'dlt-ds-badge-on' );
+							$rowS.removeClass( 'is-inactive' ).addClass( 'is-active' );
+						} else {
+							$badgeS.text( 'Off' ).removeClass( 'dlt-ds-badge-on' ).addClass( 'dlt-ds-badge-off' );
+							$rowS.removeClass( 'is-active' ).addClass( 'is-inactive' );
+						}
+						dltDsRenderSingleListingPanel( response.data );
+						dltDsShowNotice( response.data.message, 'success' );
+					} else {
+						$input.prop( 'checked', ! newValS );
+						var errS = ( response.data && response.data.message )
+							? response.data.message : 'Save failed.';
+						dltDsShowNotice( errS, 'error' );
+					}
+				},
+				error: function () {
+					$spinnerS.hide();
+					$toggleLblS.removeClass( 'is-loading' );
+					$input.prop( 'disabled', false );
+					$input.prop( 'checked', ! newValS );
+					dltDsShowNotice( 'Server error. Please try again.', 'error' );
+				}
+			} );
+		} );
+
+		// Assigned page — save via AJAX (single_listing_page term meta).
+		var dltSinglePageTimer = null;
+		$( document ).on( 'change', '.dlt-ds-single-page-select', function () {
+			var $sel   = $( this );
+			var termPg = parseInt( $sel.data( 'term-id' ), 10 );
+			var pageId = parseInt( $sel.val(), 10 );
+			var $cell  = $sel.closest( 'td' );
+			var $spinP = $cell.find( '.dlt-ds-single-page-spinner' );
+			var $ok    = $cell.find( '.dlt-ds-single-page-saved' );
+
+			$sel.prop( 'disabled', true );
+			$spinP.css( 'visibility', 'visible' ).show();
+			$ok.hide();
+
+			clearTimeout( dltSinglePageTimer );
+			dltSinglePageTimer = setTimeout( function () {
+				$.ajax( {
+					url  : dltAdmin.ajaxUrl,
+					type : 'POST',
+					data : {
+						action  : 'dlt_save_directory_type_single_listing_page',
+						nonce   : dltAdmin.nonce,
+						term_id : termPg,
+						page_id : pageId
+					},
+					success: function ( response ) {
+						$spinP.css( 'visibility', 'hidden' ).hide();
+						$sel.prop( 'disabled', false );
+						if ( response.success && response.data.single_listing ) {
+							dltDsRenderSingleListingPanel( response.data );
+							$ok = $( '.dlt-ds-single-page-saved' ).first();
+							$ok.fadeIn( 150 );
+							setTimeout( function () { $ok.fadeOut( 600 ); }, 1800 );
+							dltDsShowNotice( response.data.message, 'success' );
+						} else {
+							dltDsShowNotice( ( response.data && response.data.message ) ? response.data.message : 'Save failed.', 'error' );
+							dltDsLoadDirectorySettings( termPg );
+						}
+					},
+					error: function () {
+						$spinP.css( 'visibility', 'hidden' ).hide();
+						$sel.prop( 'disabled', false );
+						dltDsShowNotice( 'Server error while saving page.', 'error' );
+						dltDsLoadDirectorySettings( termPg );
+					}
+				} );
+			}, 200 );
+		} );
 
 		// Per-directory thumbnail toggle handler.
 		$( document ).on( 'change', '.dlt-ds-dir-toggle-input', function () {

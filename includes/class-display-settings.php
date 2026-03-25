@@ -67,6 +67,7 @@ class Directorist_Listing_Tools_Display_Settings {
 		add_action( 'wp_ajax_dlt_toggle_display_setting',        array( $this, 'handle_ajax_toggle' ) );
 		add_action( 'wp_ajax_dlt_load_directory_type_settings',  array( $this, 'handle_ajax_load_directory_type_settings' ) );
 		add_action( 'wp_ajax_dlt_toggle_directory_type_setting', array( $this, 'handle_ajax_toggle_directory_type_setting' ) );
+		add_action( 'wp_ajax_dlt_save_directory_type_single_listing_page', array( $this, 'handle_ajax_save_directory_type_single_listing_page' ) );
 		add_action( 'wp_ajax_dlt_save_lwm_setting',              array( $this, 'handle_ajax_save_lwm_setting' ) );
 		add_action( 'wp_ajax_dlt_save_role_capability',          array( $this, 'handle_ajax_save_role_capability' ) );
 
@@ -199,6 +200,96 @@ class Directorist_Listing_Tools_Display_Settings {
 				'meta_label'  => $list_template ?: __( '(not set — defaults to with thumbnail)', 'directorist-listing-tools' ),
 			),
 		);
+	}
+
+	/**
+	 * @param mixed $val Raw term meta value.
+	 * @return bool
+	 */
+	private function term_meta_is_truthy( $val ) {
+		if ( is_bool( $val ) ) {
+			return $val;
+		}
+		if ( is_numeric( $val ) ) {
+			return (int) $val === 1;
+		}
+		if ( is_string( $val ) ) {
+			$v = strtolower( trim( $val ) );
+			return in_array( $v, array( '1', 'true', 'yes', 'on' ), true );
+		}
+		return ! empty( $val );
+	}
+
+	/**
+	 * Directorist per-type single template meta (term).
+	 *
+	 * @param int $term_id Directory type term ID.
+	 * @return array
+	 */
+	private function get_directory_type_single_listing_settings( $term_id ) {
+		$enabled_raw = get_term_meta( $term_id, 'enable_single_listing_page', true );
+		$enabled     = $this->term_meta_is_truthy( $enabled_raw );
+		$page_id     = (int) get_term_meta( $term_id, 'single_listing_page', true );
+
+		$page_title = '';
+		$valid_page = false;
+		$edit_url   = '';
+		$view_url   = '';
+
+		if ( $page_id > 0 ) {
+			$post = get_post( $page_id );
+			if ( $post && 'page' === $post->post_type ) {
+				$valid_page = true;
+				$page_title = get_the_title( $post );
+				$edit_link  = get_edit_post_link( $page_id, 'raw' );
+				$edit_url   = $edit_link ? $edit_link : '';
+				$view_url   = get_permalink( $post ) ? get_permalink( $post ) : '';
+			}
+		}
+
+		$issue = '';
+		if ( $enabled && $page_id < 1 ) {
+			$issue = __( 'Custom single is ON but no page is assigned. Single content may be empty until you pick a page or turn this OFF.', 'directorist-listing-tools' );
+		} elseif ( $enabled && $page_id > 0 && ! $valid_page ) {
+			$issue = __( 'The saved page ID is not a valid Page. Fix the assignment or disable custom single.', 'directorist-listing-tools' );
+		}
+
+		return array(
+			'enable_custom_single' => $enabled,
+			'page_id'              => $page_id,
+			'page_title'           => $page_title,
+			'valid_page'           => $valid_page,
+			'edit_url'             => $edit_url,
+			'view_url'             => $view_url,
+			'issue'                => $issue,
+		);
+	}
+
+	/**
+	 * Published pages for assigning custom single (AJAX UI).
+	 *
+	 * @return array List of [ 'id' => int, 'title' => string ].
+	 */
+	private function get_pages_for_single_listing_dropdown() {
+		$pages = get_pages(
+			array(
+				'sort_column'  => 'post_title',
+				'sort_order'   => 'ASC',
+				'number'       => 500,
+				'post_status'  => array( 'publish', 'draft', 'private' ),
+			)
+		);
+		if ( empty( $pages ) ) {
+			return array();
+		}
+		$out = array();
+		foreach ( $pages as $p ) {
+			$out[] = array(
+				'id'    => (int) $p->ID,
+				'title' => $p->post_title,
+			);
+		}
+		return $out;
 	}
 
 	// ────────────────────────────────────────────────────────────────
@@ -361,9 +452,67 @@ class Directorist_Listing_Tools_Display_Settings {
 
 		wp_send_json_success(
 			array(
-				'term_id'  => $term_id,
-				'name'     => $term->name,
-				'settings' => $this->get_directory_type_display_settings( $term_id ),
+				'term_id'        => $term_id,
+				'name'           => $term->name,
+				'settings'       => $this->get_directory_type_display_settings( $term_id ),
+				'single_listing' => $this->get_directory_type_single_listing_settings( $term_id ),
+				'page_choices'   => $this->get_pages_for_single_listing_dropdown(),
+			)
+		);
+	}
+
+	/**
+	 * AJAX: Assign WordPress page for custom single listing (term meta single_listing_page).
+	 */
+	public function handle_ajax_save_directory_type_single_listing_page() {
+		check_ajax_referer( 'dlt_admin_nonce', 'nonce' );
+
+		if ( ! dlt_current_user_can() ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'directorist-listing-tools' ) ) );
+		}
+
+		$term_id  = absint( isset( $_POST['term_id'] ) ? $_POST['term_id'] : 0 );
+		$page_id  = isset( $_POST['page_id'] ) ? absint( $_POST['page_id'] ) : 0;
+
+		if ( ! $term_id ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid directory type ID.', 'directorist-listing-tools' ) ) );
+		}
+
+		$term = get_term( $term_id, dlt_get_listing_types_taxonomy() );
+		if ( ! $term || is_wp_error( $term ) ) {
+			wp_send_json_error( array( 'message' => __( 'Directory type not found.', 'directorist-listing-tools' ) ) );
+		}
+
+		if ( $page_id > 0 ) {
+			$post = get_post( $page_id );
+			if ( ! $post || 'page' !== $post->post_type ) {
+				wp_send_json_error( array( 'message' => __( 'Please choose a valid WordPress Page.', 'directorist-listing-tools' ) ) );
+			}
+		}
+
+		update_term_meta( $term_id, 'single_listing_page', $page_id > 0 ? $page_id : '' );
+
+		$name = $term->name;
+		if ( $page_id > 0 ) {
+			$message = sprintf(
+				/* translators: %s: directory type name */
+				__( 'Custom single page saved for "%s".', 'directorist-listing-tools' ),
+				$name
+			);
+		} else {
+			$message = sprintf(
+				/* translators: %s: directory type name */
+				__( 'Custom single page cleared for "%s".', 'directorist-listing-tools' ),
+				$name
+			);
+		}
+
+		wp_send_json_success(
+			array(
+				'message'        => $message,
+				'term_id'        => $term_id,
+				'single_listing' => $this->get_directory_type_single_listing_settings( $term_id ),
+				'page_choices'   => $this->get_pages_for_single_listing_dropdown(),
 			)
 		);
 	}
@@ -386,9 +535,34 @@ class Directorist_Listing_Tools_Display_Settings {
 			wp_send_json_error( array( 'message' => __( 'Invalid directory type ID.', 'directorist-listing-tools' ) ) );
 		}
 
-		$allowed = array( 'grid_thumbnail', 'list_thumbnail' );
+		$allowed = array( 'grid_thumbnail', 'list_thumbnail', 'enable_custom_single_page' );
 		if ( ! in_array( $setting_key, $allowed, true ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid setting key.', 'directorist-listing-tools' ) ) );
+		}
+
+		if ( 'enable_custom_single_page' === $setting_key ) {
+			update_term_meta( $term_id, 'enable_single_listing_page', $value ? 1 : 0 );
+			$term   = get_term( $term_id, dlt_get_listing_types_taxonomy() );
+			$name   = ( $term && ! is_wp_error( $term ) ) ? $term->name : '#' . $term_id;
+			$label  = __( 'Custom single listing page', 'directorist-listing-tools' );
+			$status = $value ? __( 'enabled', 'directorist-listing-tools' ) : __( 'disabled', 'directorist-listing-tools' );
+
+			wp_send_json_success(
+				array(
+					'message'        => sprintf(
+						/* translators: 1: feature label, 2: directory type name, 3: enabled/disabled */
+						__( '%1$s for "%2$s" has been %3$s.', 'directorist-listing-tools' ),
+						$label,
+						$name,
+						$status
+					),
+					'setting_key'    => $setting_key,
+					'value'          => $value,
+					'term_id'        => $term_id,
+					'single_listing' => $this->get_directory_type_single_listing_settings( $term_id ),
+					'page_choices'   => $this->get_pages_for_single_listing_dropdown(),
+				)
+			);
 		}
 
 		if ( 'grid_thumbnail' === $setting_key ) {
@@ -549,7 +723,7 @@ class Directorist_Listing_Tools_Display_Settings {
 			),
 			'single_listing'      => array(
 				'label'       => __( 'Single Listing', 'directorist-listing-tools' ),
-				'description' => __( 'Controls options for the individual listing detail page.', 'directorist-listing-tools' ),
+				'description' => __( 'Global options apply to all directory types. Custom single template (Elementor/page) is configured per directory type — loaded via AJAX when you pick a type above.', 'directorist-listing-tools' ),
 				'icon'        => 'dashicons-admin-post',
 			),
 			'map_popup'           => array(
@@ -977,6 +1151,37 @@ class Directorist_Listing_Tools_Display_Settings {
 
 					<?php if ( ! empty( $section['description'] ) ) : ?>
 						<p class="dlt-ds-panel-intro"><?php echo esc_html( $section['description'] ); ?></p>
+					<?php endif; ?>
+
+					<?php if ( 'single_listing' === $section_id && ! empty( $directory_types ) ) : ?>
+						<div class="notice notice-info inline" style="margin:14px 0;">
+							<p>
+								<?php esc_html_e( 'Rows below this box use AJAX with the Directory Type selector. Toggle and page assignment are saved in term meta (Directorist: enable_single_listing_page, single_listing_page).', 'directorist-listing-tools' ); ?>
+							</p>
+						</div>
+						<h2 class="title" style="font-size:14px;margin:12px 0 8px;">
+							<?php esc_html_e( 'Selected directory type — custom single template', 'directorist-listing-tools' ); ?>
+						</h2>
+						<table class="dlt-ds-table widefat dlt-ds-single-type-table">
+							<thead>
+								<tr>
+									<th style="width:34%;"><?php esc_html_e( 'Setting', 'directorist-listing-tools' ); ?></th>
+									<th><?php esc_html_e( 'Details & assignment', 'directorist-listing-tools' ); ?></th>
+									<th style="width:200px;text-align:center;"><?php esc_html_e( 'Control', 'directorist-listing-tools' ); ?></th>
+								</tr>
+							</thead>
+							<tbody id="dlt-ds-single-type-tbody">
+								<tr>
+									<td colspan="3" style="text-align:center;padding:22px;color:#646970;">
+										<span class="spinner is-active" style="float:none;"></span>
+										<?php esc_html_e( 'Select a directory type above; settings load via AJAX.', 'directorist-listing-tools' ); ?>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+						<h2 class="title" style="font-size:14px;margin:22px 0 8px;">
+							<?php esc_html_e( 'Global (all types)', 'directorist-listing-tools' ); ?>
+						</h2>
 					<?php endif; ?>
 
 					<table class="dlt-ds-table widefat">

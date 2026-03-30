@@ -91,8 +91,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 		// Display Settings.
 		add_submenu_page(
 			$parent_slug,
-			esc_html__( 'Listing Settings', 'directorist-listing-tools' ),
-			esc_html__( 'Listing Settings', 'directorist-listing-tools' ),
+			esc_html__( 'Directorist Tools', 'directorist-listing-tools' ),
+			esc_html__( 'Directorist Tools', 'directorist-listing-tools' ),
 			'manage_options',
 			'directorist-listing-tools-display-settings',
 			array( $this, 'render_display_settings_page' )
@@ -149,7 +149,7 @@ class Directorist_Listing_Tools_Admin_Menu {
 			);
 		}
 
-		// Hide the individual tools from the Directorist menu so only "Listing Settings"
+		// Hide the individual tools from the Directorist menu so only "Directorist Tools"
 		// appears; users can navigate between tools using the tab bar rendered on each page.
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-bulk-delete' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-pending' );

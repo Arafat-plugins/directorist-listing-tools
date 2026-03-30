@@ -210,9 +210,9 @@ function dlt_render_main_settings_tabs() {
 
 	?>
 	<div class="wrap dlt-main-settings-wrap">
-		<h1 class="wp-heading-inline">
-			<span class="dashicons dashicons-admin-generic" style="font-size:24px;vertical-align:middle;margin-right:6px;color:#2271b1;"></span>
-			<?php esc_html_e( 'Listing Settings', 'directorist-listing-tools' ); ?>
+		<h1 class="wp-heading-inline dlt-main-heading">
+			<span class="dashicons dashicons-admin-generic dlt-main-heading__icon" aria-hidden="true"></span>
+			<span class="dlt-automation-gradient-title"><?php esc_html_e( 'Directorist Tools', 'directorist-listing-tools' ); ?></span>
 		</h1>
 		<h2 class="nav-tab-wrapper dlt-main-tab-nav" style="margin-top:16px;">
 			<?php foreach ( $tabs as $slug => $label ) : ?>

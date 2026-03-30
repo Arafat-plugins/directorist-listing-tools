@@ -115,6 +115,63 @@
 	margin: 20px 0;
 }
 
+/* ============================================================
+   Main hub heading — matches Automation plugin gradient title
+   (see automation/assets/js/site-title-gradient.js on frontend).
+   ============================================================ */
+
+.dlt-main-settings-wrap .dlt-main-heading {
+	display: inline-flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	line-height: 1.2;
+}
+
+.dlt-main-settings-wrap .dlt-main-heading__icon {
+	font-size: 28px;
+	width: 28px;
+	height: 28px;
+	color: #2271b1;
+}
+
+.dlt-main-settings-wrap .dlt-automation-gradient-title {
+	font-weight: 700;
+	letter-spacing: -0.03em;
+	line-height: 1.15;
+	background: linear-gradient(
+		135deg,
+		#e11d48 0%,
+		#2dd4bf 52%,
+		#4f46e5 100%
+	);
+	background-size: 200% 200%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	-webkit-text-fill-color: transparent;
+	animation: dlt-automation-gradient-shift 6s ease-in-out infinite;
+}
+
+@keyframes dlt-automation-gradient-shift {
+
+	0%,
+	100% {
+		background-position: 0% 50%;
+	}
+
+	50% {
+		background-position: 100% 50%;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+	.dlt-main-settings-wrap .dlt-automation-gradient-title {
+		animation: none;
+		background-position: 0% 50%;
+	}
+}
 
 /* ============================================================
    Display Settings Page — Tabbed Layout

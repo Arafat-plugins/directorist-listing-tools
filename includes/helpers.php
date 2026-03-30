@@ -172,7 +172,7 @@ function dlt_get_listing_types_taxonomy() {
 }
 
 /**
- * Render top-level Listing Tools settings tabs (Bulk, Pending, Types, Locations, Display, Plans).
+ * Render top-level Listing Tools settings tabs (Display, Apply functions, Bulk, Pending, etc.).
  *
  * This appears above each tools page so they feel like a single tabbed interface.
  */
@@ -194,8 +194,9 @@ function dlt_render_main_settings_tabs() {
 	$parent_url = admin_url( 'edit.php?post_type=' . dlt_get_post_type() );
 
 	$tabs = array(
-		'directorist-listing-tools-display-settings' => __( 'Display Settings', 'directorist-listing-tools' ),
-		'directorist-listing-tools-bulk-delete'      => __( 'Bulk Delete', 'directorist-listing-tools' ),
+		'directorist-listing-tools-display-settings'   => __( 'Display Settings', 'directorist-listing-tools' ),
+		'directorist-listing-tools-apply-functions'    => __( 'Apply functions', 'directorist-listing-tools' ),
+		'directorist-listing-tools-bulk-delete'        => __( 'Bulk Delete', 'directorist-listing-tools' ),
 		'directorist-listing-tools-pending'          => __( 'Pending Manager', 'directorist-listing-tools' ),
 		'directorist-listing-tools-type-manager'     => __( 'Type Manager', 'directorist-listing-tools' ),
 		'directorist-listing-tools-location-manager' => __( 'Location Manager', 'directorist-listing-tools' ),

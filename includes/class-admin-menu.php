@@ -98,6 +98,16 @@ class Directorist_Listing_Tools_Admin_Menu {
 			array( $this, 'render_display_settings_page' )
 		);
 
+		// Apply functions (optional Directorist / WC compatibility toggles).
+		add_submenu_page(
+			$parent_slug,
+			esc_html__( 'Apply functions', 'directorist-listing-tools' ),
+			esc_html__( 'Apply functions', 'directorist-listing-tools' ),
+			'manage_options',
+			'directorist-listing-tools-apply-functions',
+			array( $this, 'render_apply_functions_page' )
+		);
+
 		// Plan Price Manager.
 		add_submenu_page(
 			$parent_slug,
@@ -145,6 +155,7 @@ class Directorist_Listing_Tools_Admin_Menu {
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-pending' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-type-manager' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-location-manager' );
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-apply-functions' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-plan-manager' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-file-manager' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-form-inspector' );
@@ -275,6 +286,17 @@ class Directorist_Listing_Tools_Admin_Menu {
 
 		$display_settings = Directorist_Listing_Tools_Display_Settings::get_instance();
 		$display_settings->render_page();
+	}
+
+	/**
+	 * Render Apply functions page (optional compatibility toggles).
+	 */
+	public function render_apply_functions_page() {
+		if ( ! dlt_current_user_can() ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
+		}
+
+		Directorist_Listing_Tools_Apply_Functions::get_instance()->render_page();
 	}
 }
 

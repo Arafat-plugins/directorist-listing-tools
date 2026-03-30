@@ -56,11 +56,13 @@ class Directorist_Listing_Tools_Loader {
 		require_once DLT_DIR . 'includes/class-admin-menu.php';
 		require_once DLT_DIR . 'includes/class-file-manager.php';
 		require_once DLT_DIR . 'includes/class-form-inspector.php';
+		require_once DLT_DIR . 'includes/class-apply-functions.php';
 		if ( dlt_is_social_login_active() ) {
 			require_once DLT_DIR . 'includes/class-social-login-diagnostics.php';
 		}
 
 		// Instantiate classes early to register hooks.
+		Directorist_Listing_Tools_Apply_Functions::get_instance();
 		Directorist_Listing_Tools_Bulk_Delete::get_instance();
 		Directorist_Listing_Tools_Pending_Manager::get_instance();
 		Directorist_Listing_Tools_Type_Manager::get_instance();

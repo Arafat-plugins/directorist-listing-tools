@@ -765,3 +765,76 @@
 	color: #3c434a;
 }
 
+/* ─── Apply functions tab ───────────────────────────────────────── */
+.dlt-apply-functions-wrap {
+	max-width: 920px;
+	margin-top: 8px;
+}
+
+.dlt-af-intro {
+	margin-bottom: 20px;
+}
+
+.dlt-af-feature-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.dlt-af-card {
+	margin: 0;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.dlt-af-card__body {
+	padding: 18px 20px;
+}
+
+.dlt-af-card__header {
+	margin-bottom: 10px;
+}
+
+.dlt-af-toggle.dlt-ds-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	gap: 16px;
+	cursor: pointer;
+}
+
+.dlt-af-card__title {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1d2327;
+	line-height: 1.4;
+	flex: 1;
+	min-width: 0;
+}
+
+.dlt-af-card__desc {
+	margin: 0;
+	line-height: 1.55;
+	color: #646970;
+}
+
+.dlt-af-card__notice {
+	margin: 12px 0 0;
+	padding: 10px 12px;
+	background: #fcf9e8;
+	border-left: 4px solid #dba617;
+	border-radius: 0 4px 4px 0;
+	font-size: 13px;
+	color: #50575e;
+}
+
+.dlt-af-form .submit {
+	margin-top: 20px;
+}
+

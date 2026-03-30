@@ -45,22 +45,69 @@ class Directorist_Listing_Tools_Apply_Functions {
 	private function __construct() {
 		$this->define_features();
 		add_action( 'admin_post_dlt_save_apply_functions', array( $this, 'handle_form_save' ) );
-		add_action( 'plugins_loaded', array( $this, 'maybe_load_features' ), 30 );
+		// After this plugin (plugins_loaded 20): run early but not before callbacks registered on this hook finish.
+		add_action( 'plugins_loaded', array( $this, 'maybe_load_features' ), 25 );
 	}
 
 	/**
-	 * Register feature list (add new entries here as you ship more fixes).
+	 * Register feature list (migrated from former mu-plugins; add new slugs here only with a matching compat/apply-features file).
 	 */
 	private function define_features() {
 		$this->features = array(
-			'directory_taxonomy_sync' => array(
-				'label'       => __( 'Directory column & taxonomy sync(Type missing fix)', 'directorist-listing-tools' ),
-				'description' => __( 'Fixes the All Listings “Directory” column so it matches the directory selected on the edit screen (_directory_type meta). Also aligns taxonomy on save. Safe to use with multi-directory Directorist.', 'directorist-listing-tools' ),
+			'directory_taxonomy_sync'          => array(
+				'label'       => __( 'Directory column & taxonomy sync', 'directorist-listing-tools' ),
+				'description' => __( 'All Listings “Directory” column from _directory_type meta; aligns taxonomy on listing save.', 'directorist-listing-tools' ),
 			),
-			'wc_plan_checkout_bridge' => array(
-				'label'       => __( 'WooCommerce plan checkout bridge(Plan missing fix)', 'directorist-listing-tools' ),
-				'description' => __( 'When Directorist WooCommerce Pricing Plans is active: fills the cart and checkout summary after submit/preview when the user lands on checkout with only the listing ID in the URL. Resolves “Nothing is available to buy” in that flow.', 'directorist-listing-tools' ),
+			'wc_plan_checkout_bridge'          => array(
+				'label'       => __( 'WooCommerce plan checkout bridge', 'directorist-listing-tools' ),
+				'description' => __( 'With WooCommerce Pricing Plans: cart + Directorist checkout summary when redirect only passes atbdp_listing_id.', 'directorist-listing-tools' ),
 				'requires_wc' => true,
+			),
+			'directorist_classic_editor'       => array(
+				'label'       => __( 'Directorist classic editor & link dialog', 'directorist-listing-tools' ),
+				'description' => __( 'Disables block editor for listings; ensures TinyMCE link / wplink on post edit screens.', 'directorist-listing-tools' ),
+			),
+			'dlist_listing_bg_lazyfix'          => array(
+				'label'       => __( 'Listing hero background (lazy-load / Smush)', 'directorist-listing-tools' ),
+				'description' => __( 'Frontend script for .listing-details-wrapper.bgimage when optimizers replace img src with placeholders.', 'directorist-listing-tools' ),
+			),
+			'fix_directorist_google_signin'     => array(
+				'label'       => __( 'Google sign-in button fallback', 'directorist-listing-tools' ),
+				'description' => __( 'Renders Google Identity button if .g_id_signin stays empty (Directorist Social Login).', 'directorist-listing-tools' ),
+			),
+			'directorist_directory_type_guard'  => array(
+				'label'       => __( 'Directory type guard', 'directorist-listing-tools' ),
+				'description' => __( 'Re-applies directory type after listing create/update and self-heals on preview/payment URLs.', 'directorist-listing-tools' ),
+			),
+			'directorist_wordfence_fix'         => array(
+				'label'       => __( 'Wordfence / AJAX login compatibility', 'directorist-listing-tools' ),
+				'description' => __( 'Intercepts redirect and re-validates authenticate for Directorist AJAX login actions.', 'directorist-listing-tools' ),
+			),
+			'wpml_rewritebase_fix'              => array(
+				'label'       => __( 'WPML RewriteBase / .htaccess fix', 'directorist-listing-tools' ),
+				'description' => __( 'Normalizes mod_rewrite rules (RewriteBase /, index.php, wp-login) when WPML touches rules.', 'directorist-listing-tools' ),
+			),
+			'directorist_css_variables_fix'     => array(
+				'label'       => __( 'Directorist CSS variables in wp_head', 'directorist-listing-tools' ),
+				'description' => __( 'Prints :root block from Directorist dynamic styles early on the frontend.', 'directorist-listing-tools' ),
+			),
+			'directorist_listing_expiration_fix' => array(
+				'label'       => __( 'Listing expiration / nearly-expired fix', 'directorist-listing-tools' ),
+				'description' => __( 'Sets expired meta on atbdp_listing_expired; supplemental renewal query after atbdp_schedule_task.', 'directorist-listing-tools' ),
+			),
+			'enqueue_line_awesome'              => array(
+				'label'       => __( 'Enqueue Line Awesome (frontend)', 'directorist-listing-tools' ),
+				'description' => __( 'Loads Directorist bundled line-awesome.min.css if not already enqueued.', 'directorist-listing-tools' ),
+			),
+			'fix_directorist_bh_add_time_slot' => array(
+				'label'       => __( 'Business hours: add time slot / Select2', 'directorist-listing-tools' ),
+				'description' => __( 'On listing edit: dequeues WooCommerce Select2; safe Select2 destroy patch for BH scripts.', 'directorist-listing-tools' ),
+				'requires_wc' => true,
+			),
+			'hide_elementor_loading_state'      => array(
+				'label'       => __( 'Hide Elementor editor loading overlay', 'directorist-listing-tools' ),
+				'description' => __( 'CSS/JS to hide #elementor-panel-state-loading in the Elementor editor.', 'directorist-listing-tools' ),
+				'requires_elementor' => true,
 			),
 		);
 	}
@@ -77,8 +124,19 @@ class Directorist_Listing_Tools_Apply_Functions {
 	 */
 	public static function get_defaults() {
 		return array(
-			'directory_taxonomy_sync' => false,
-			'wc_plan_checkout_bridge' => false,
+			'directory_taxonomy_sync'           => false,
+			'wc_plan_checkout_bridge'          => false,
+			'directorist_classic_editor'        => false,
+			'dlist_listing_bg_lazyfix'          => false,
+			'fix_directorist_google_signin'     => false,
+			'directorist_directory_type_guard' => false,
+			'directorist_wordfence_fix'         => false,
+			'wpml_rewritebase_fix'              => false,
+			'directorist_css_variables_fix'      => false,
+			'directorist_listing_expiration_fix' => false,
+			'enqueue_line_awesome'              => false,
+			'fix_directorist_bh_add_time_slot'  => false,
+			'hide_elementor_loading_state'      => false,
 		);
 	}
 
@@ -103,8 +161,16 @@ class Directorist_Listing_Tools_Apply_Functions {
 		check_admin_referer( 'dlt_save_apply_functions' );
 
 		$input = isset( $_POST['dlt_apply'] ) && is_array( $_POST['dlt_apply'] ) ? wp_unslash( $_POST['dlt_apply'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$prev  = get_option( DLT_APPLY_FUNCTIONS_OPTION, array() );
 		$out   = self::get_defaults();
 		foreach ( array_keys( $this->features ) as $key ) {
+			$meta        = isset( $this->features[ $key ] ) ? $this->features[ $key ] : array();
+			$needs_wc    = ! empty( $meta['requires_wc'] ) && ! class_exists( 'WooCommerce' );
+			$needs_el    = ! empty( $meta['requires_elementor'] ) && ! defined( 'ELEMENTOR_VERSION' );
+			if ( $needs_wc || $needs_el ) {
+				$out[ $key ] = ! empty( $prev[ $key ] );
+				continue;
+			}
 			$out[ $key ] = ! empty( $input[ $key ] );
 		}
 
@@ -126,19 +192,51 @@ class Directorist_Listing_Tools_Apply_Functions {
 			return;
 		}
 
-		$opts = self::get_options();
+		$opts       = self::get_options();
+		$compat_dir = DLT_DIR . 'includes/compat/';
 
 		if ( ! empty( $opts['directory_taxonomy_sync'] ) ) {
 			require_once DLT_DIR . 'includes/apply-features/directory-taxonomy-sync.php';
 			dlt_af_bootstrap_directory_taxonomy_sync();
 		}
 
-		if ( ! empty( $opts['wc_plan_checkout_bridge'] ) ) {
-			if ( ! class_exists( 'WooCommerce' ) ) {
-				return;
-			}
+		if ( ! empty( $opts['wc_plan_checkout_bridge'] ) && class_exists( 'WooCommerce' ) ) {
 			require_once DLT_DIR . 'includes/apply-features/wc-plan-checkout-bridge.php';
 			dlt_af_bootstrap_wc_plan_checkout_bridge();
+		}
+
+		if ( ! empty( $opts['directorist_classic_editor'] ) ) {
+			require_once $compat_dir . 'directorist-classic-editor.php';
+		}
+		if ( ! empty( $opts['dlist_listing_bg_lazyfix'] ) ) {
+			require_once $compat_dir . 'dlist-listing-bg-lazyfix.php';
+		}
+		if ( ! empty( $opts['fix_directorist_google_signin'] ) ) {
+			require_once $compat_dir . 'fix-directorist-google-signin.php';
+		}
+		if ( ! empty( $opts['directorist_directory_type_guard'] ) ) {
+			require_once $compat_dir . 'directorist-directory-type-guard.php';
+		}
+		if ( ! empty( $opts['directorist_wordfence_fix'] ) ) {
+			require_once $compat_dir . 'directorist-wordfence-fix.php';
+		}
+		if ( ! empty( $opts['wpml_rewritebase_fix'] ) ) {
+			require_once $compat_dir . 'wpml-rewritebase-fix.php';
+		}
+		if ( ! empty( $opts['directorist_css_variables_fix'] ) ) {
+			require_once $compat_dir . 'directorist-css-variables-fix.php';
+		}
+		if ( ! empty( $opts['directorist_listing_expiration_fix'] ) ) {
+			require_once $compat_dir . 'directorist-listing-expiration-fix.php';
+		}
+		if ( ! empty( $opts['enqueue_line_awesome'] ) ) {
+			require_once $compat_dir . 'enqueue-line-awesome.php';
+		}
+		if ( ! empty( $opts['fix_directorist_bh_add_time_slot'] ) && class_exists( 'WooCommerce' ) ) {
+			require_once $compat_dir . 'fix-directorist-bh-add-time-slot.php';
+		}
+		if ( ! empty( $opts['hide_elementor_loading_state'] ) ) {
+			require_once $compat_dir . 'hide-elementor-loading-state.php';
 		}
 	}
 
@@ -181,6 +279,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 						$disabled_note = '';
 						if ( ! empty( $meta['requires_wc'] ) && ! class_exists( 'WooCommerce' ) ) {
 							$disabled_note = __( 'WooCommerce is not active — enable WooCommerce to use this.', 'directorist-listing-tools' );
+						}
+						if ( $disabled_note === '' && ! empty( $meta['requires_elementor'] ) && ! defined( 'ELEMENTOR_VERSION' ) ) {
+							$disabled_note = __( 'Elementor is not active — install Elementor to use this.', 'directorist-listing-tools' );
 						}
 						$checked = ! empty( $opts[ $id ] );
 						$row_id  = 'dlt-af-' . sanitize_html_class( $id );

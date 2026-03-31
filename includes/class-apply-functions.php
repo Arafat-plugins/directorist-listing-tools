@@ -79,6 +79,10 @@ class Directorist_Listing_Tools_Apply_Functions {
 				'label'       => __( 'Directory type guard', 'directorist-listing-tools' ),
 				'description' => __( 'Re-applies directory type after listing create/update and self-heals on preview/payment URLs.', 'directorist-listing-tools' ),
 			),
+			'directorist_term_directory_assignment_fix' => array(
+				'label'       => __( 'Term directory assignment fix (category/location)', 'directorist-listing-tools' ),
+				'description' => __( 'Preserves multiple selected directory types for category/location taxonomy term saves.', 'directorist-listing-tools' ),
+			),
 			'directorist_wordfence_fix'         => array(
 				'label'       => __( 'Wordfence / AJAX login compatibility', 'directorist-listing-tools' ),
 				'description' => __( 'Intercepts redirect and re-validates authenticate for Directorist AJAX login actions.', 'directorist-listing-tools' ),
@@ -130,6 +134,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'dlist_listing_bg_lazyfix'          => false,
 			'fix_directorist_google_signin'     => false,
 			'directorist_directory_type_guard' => false,
+			'directorist_term_directory_assignment_fix' => false,
 			'directorist_wordfence_fix'         => false,
 			'wpml_rewritebase_fix'              => false,
 			'directorist_css_variables_fix'      => false,
@@ -216,6 +221,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		if ( ! empty( $opts['directorist_directory_type_guard'] ) ) {
 			require_once $compat_dir . 'directorist-directory-type-guard.php';
+		}
+		if ( ! empty( $opts['directorist_term_directory_assignment_fix'] ) ) {
+			require_once $compat_dir . 'directorist-term-directory-assignment-fix.php';
 		}
 		if ( ! empty( $opts['directorist_wordfence_fix'] ) ) {
 			require_once $compat_dir . 'directorist-wordfence-fix.php';

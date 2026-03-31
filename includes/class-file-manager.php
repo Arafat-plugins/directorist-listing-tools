@@ -326,12 +326,38 @@ class Directorist_Listing_Tools_File_Manager {
 		if ( '' === $name ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid file name.', 'directorist-listing-tools' ) ) );
 		}
-		$target = path_join( $parent['absolute'], $name );
-		$rel = $subpath === '' ? $name : $subpath . '/' . $name;
+
+		// Optional relative path for folder uploads (drag-and-drop / webkitdirectory).
+		$relative = isset( $_REQUEST['rel_path'] ) ? (string) wp_unslash( $_REQUEST['rel_path'] ) : '';
+		$relative = str_replace( '\\', '/', $relative );
+		$relative = trim( $relative, "/ \t\n\r\0\x0B" );
+		if ( $relative !== '' ) {
+			$parts = array_filter( array_map( 'sanitize_file_name', explode( '/', $relative ) ) );
+			$parts = array_values( $parts );
+			$relative = implode( '/', $parts );
+		}
+
+		$dest_rel = $name;
+		if ( $relative !== '' ) {
+			$dest_rel = $relative;
+			$leaf = basename( $dest_rel );
+			if ( $leaf === '' ) {
+				$dest_rel = $name;
+			}
+		}
+
+		$rel = $subpath === '' ? $dest_rel : $subpath . '/' . $dest_rel;
 		$under = $this->resolve_path( $rel );
 		if ( ! $under['valid'] ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid path.', 'directorist-listing-tools' ) ) );
 		}
+
+		$target = $under['absolute'];
+		$target_dir = dirname( $target );
+		if ( ! is_dir( $target_dir ) && ! wp_mkdir_p( $target_dir ) ) {
+			wp_send_json_error( array( 'message' => __( 'Could not create destination directory.', 'directorist-listing-tools' ) ) );
+		}
+
 		if ( ! move_uploaded_file( $_FILES['file']['tmp_name'], $target ) ) {
 			wp_send_json_error( array( 'message' => __( 'Could not save uploaded file.', 'directorist-listing-tools' ) ) );
 		}
@@ -567,10 +593,13 @@ class Directorist_Listing_Tools_File_Manager {
 					<button type="button" class="button button-secondary dlt-fm-btn dlt-fm-new-file"><span class="dashicons dashicons-media-default"></span> <?php esc_html_e( 'New file', 'directorist-listing-tools' ); ?></button>
 					<div class="dlt-fm-upload-wrap">
 						<input type="file" id="dlt-fm-upload-input" class="dlt-fm-upload-input" multiple>
+						<input type="file" id="dlt-fm-upload-folder-input" class="dlt-fm-upload-input" webkitdirectory directory multiple>
 						<button type="button" class="button button-secondary dlt-fm-btn dlt-fm-upload-btn"><span class="dashicons dashicons-upload"></span> <?php esc_html_e( 'Upload', 'directorist-listing-tools' ); ?></button>
+						<button type="button" class="button button-secondary dlt-fm-btn dlt-fm-upload-folder-btn"><span class="dashicons dashicons-portfolio"></span> <?php esc_html_e( 'Upload folder', 'directorist-listing-tools' ); ?></button>
 					</div>
 				</div>
 			</div>
+			<p class="description dlt-fm-drop-hint"><?php esc_html_e( 'Tip: Drag and drop files or folders directly into the file list area.', 'directorist-listing-tools' ); ?></p>
 			<div class="dlt-fm-list-wrap">
 				<div class="dlt-fm-loading" style="display:none;"><?php esc_html_e( 'Loading…', 'directorist-listing-tools' ); ?></div>
 				<div class="dlt-fm-list" role="list"></div>

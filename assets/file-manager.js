@@ -8,6 +8,17 @@
 	var config = {};
 	var currentPath = '';
 	var modalConfirmCallback = null;
+	var loaderState = {
+		active: false,
+		messageIndex: 0,
+		dotsFrame: 0,
+		dotsTimer: null,
+		messageTimer: null,
+		statusMessages: [
+			'Scanning files',
+			'Preparing results'
+		]
+	};
 
 	function getConfig() {
 		var el = document.getElementById('dlt-fm-config');
@@ -20,9 +31,93 @@
 	}
 
 	function showLoading(show) {
-		$('.dlt-fm-loading').toggle(!!show);
-		$('.dlt-fm-list').toggle(!show);
+		var $loading = $('.dlt-fm-loading');
+		if (show) {
+			startLoader();
+			$loading.show();
+			$('.dlt-fm-list').hide();
+			$('.dlt-fm-empty').hide();
+			return;
+		}
+		stopLoader();
+		$loading.hide();
+		$('.dlt-fm-list').show();
+	}
+
+	function renderLoaderTemplate() {
+		var msg = loaderState.statusMessages[loaderState.messageIndex];
+		var dots = '.'.repeat(loaderState.dotsFrame + 1);
+		var $loading = $('.dlt-fm-loading');
+		$loading.removeClass('is-error');
+
+		// Create once to avoid animation reset/flicker on every interval tick.
+		if (!$loading.find('.dlt-fm-loading-ui').length) {
+			$loading.html(
+				'<div class="dlt-fm-loading-ui" role="status" aria-live="polite">' +
+					'<span class="dlt-fm-loading-spinner" aria-hidden="true"></span>' +
+					'<div class="dlt-fm-loading-text-wrap">' +
+						'<div class="dlt-fm-loading-status"><span class="dlt-fm-loading-status-text"></span><span class="dlt-fm-loading-dots"></span></div>' +
+					'</div>' +
+				'</div>'
+			);
+		}
+
+		$loading.find('.dlt-fm-loading-status-text').text(msg);
+		$loading.find('.dlt-fm-loading-dots').text(dots);
+	}
+
+	function stopLoaderTimers() {
+		if (loaderState.dotsTimer) {
+			clearInterval(loaderState.dotsTimer);
+			loaderState.dotsTimer = null;
+		}
+		if (loaderState.messageTimer) {
+			clearInterval(loaderState.messageTimer);
+			loaderState.messageTimer = null;
+		}
+	}
+
+	function startLoader() {
+		if (loaderState.active) return;
+		loaderState.active = true;
+		loaderState.messageIndex = 0;
+		loaderState.dotsFrame = 0;
+		stopLoaderTimers();
+		renderLoaderTemplate();
+
+		loaderState.dotsTimer = setInterval(function() {
+			if (!loaderState.active) return;
+			loaderState.dotsFrame = (loaderState.dotsFrame + 1) % 3;
+			renderLoaderTemplate();
+		}, 350);
+
+		loaderState.messageTimer = setInterval(function() {
+			if (!loaderState.active) return;
+			loaderState.messageIndex = (loaderState.messageIndex + 1) % loaderState.statusMessages.length;
+			renderLoaderTemplate();
+		}, 1500);
+	}
+
+	function stopLoader() {
+		loaderState.active = false;
+		stopLoaderTimers();
+		$('.dlt-fm-loading').removeClass('is-error').empty();
+	}
+
+	function showLoaderError(message) {
+		loaderState.active = false;
+		stopLoaderTimers();
+		$('.dlt-fm-list').hide();
 		$('.dlt-fm-empty').hide();
+		$('.dlt-fm-loading')
+			.addClass('is-error')
+			.show()
+			.html(
+				'<div class="dlt-fm-loading-ui dlt-fm-loading-error" role="alert">' +
+					'<span class="dlt-fm-loading-error-icon dashicons dashicons-warning"></span>' +
+					'<div class="dlt-fm-loading-status">' + escapeHtml(message || 'Something went wrong while loading files.') + '</div>' +
+				'</div>'
+			);
 	}
 
 	function renderBreadcrumb(path, rootLabel) {
@@ -125,9 +220,7 @@
 				}
 			},
 			error: function(xhr, status, err) {
-				showLoading(false);
-				$('.dlt-fm-list').empty();
-				alert('Request failed. Please try again.');
+				showLoaderError('Could not load files. Please try again.');
 			}
 		});
 	}
@@ -307,6 +400,142 @@
 		}, 100);
 	}
 
+	function uploadQueue(queue) {
+		if (!queue || !queue.length || !getConfig()) return;
+		var index = 0;
+
+		function uploadNext() {
+			if (index >= queue.length) {
+				loadList();
+				$('#dlt-fm-upload-input').val('');
+				$('#dlt-fm-upload-folder-input').val('');
+				return;
+			}
+			var item = queue[index];
+			var fd = new FormData();
+			fd.append('action', 'dlt_fm_upload');
+			fd.append('nonce', config.nonce);
+			fd.append('path', currentPath);
+			fd.append('file', item.file);
+			if (item.relPath) {
+				fd.append('rel_path', item.relPath);
+			}
+
+			$.ajax({
+				url: config.ajaxUrl,
+				type: 'POST',
+				data: fd,
+				processData: false,
+				contentType: false,
+				success: function(res) {
+					if (!(res && res.success)) {
+						alert((res && res.data && res.data.message ? res.data.message : 'Upload failed for: ') + item.file.name);
+					}
+					index++;
+					uploadNext();
+				},
+				error: function() {
+					alert('Upload failed for: ' + item.file.name);
+					index++;
+					uploadNext();
+				}
+			});
+		}
+
+		uploadNext();
+	}
+
+	function buildQueueFromFileList(files) {
+		var queue = [];
+		for (var i = 0; i < files.length; i++) {
+			var rel = files[i].webkitRelativePath ? files[i].webkitRelativePath : '';
+			queue.push({ file: files[i], relPath: rel });
+		}
+		return queue;
+	}
+
+	function walkEntry(entry, parentPath) {
+		return new Promise(function(resolve) {
+			if (!entry) {
+				resolve([]);
+				return;
+			}
+			if (entry.isFile) {
+				entry.file(function(file) {
+					resolve([{ file: file, relPath: parentPath ? (parentPath + '/' + file.name) : file.name }]);
+				}, function() {
+					resolve([]);
+				});
+				return;
+			}
+			if (!entry.isDirectory) {
+				resolve([]);
+				return;
+			}
+
+			var dirPath = parentPath ? (parentPath + '/' + entry.name) : entry.name;
+			var reader = entry.createReader();
+			var entries = [];
+
+			function readBatch() {
+				reader.readEntries(function(batch) {
+					if (!batch.length) {
+						if (!entries.length) {
+							resolve([]);
+							return;
+						}
+						Promise.all(entries.map(function(child) { return walkEntry(child, dirPath); }))
+							.then(function(results) {
+								var flattened = [];
+								results.forEach(function(arr) { flattened = flattened.concat(arr); });
+								resolve(flattened);
+							})
+							.catch(function() { resolve([]); });
+						return;
+					}
+					entries = entries.concat(batch);
+					readBatch();
+				}, function() {
+					resolve([]);
+				});
+			}
+			readBatch();
+		});
+	}
+
+	function buildQueueFromDataTransfer(dt) {
+		return new Promise(function(resolve) {
+			var items = dt && dt.items ? dt.items : null;
+			if (!items || !items.length) {
+				resolve([]);
+				return;
+			}
+
+			var walkers = [];
+			for (var i = 0; i < items.length; i++) {
+				var item = items[i];
+				if (!item || item.kind !== 'file') continue;
+				var entry = item.webkitGetAsEntry ? item.webkitGetAsEntry() : null;
+				if (entry) {
+					walkers.push(walkEntry(entry, ''));
+				}
+			}
+
+			if (!walkers.length && dt.files && dt.files.length) {
+				resolve(buildQueueFromFileList(dt.files));
+				return;
+			}
+
+			Promise.all(walkers).then(function(results) {
+				var flattened = [];
+				results.forEach(function(arr) { flattened = flattened.concat(arr); });
+				resolve(flattened);
+			}).catch(function() {
+				resolve([]);
+			});
+		});
+	}
+
 	$(document).ready(function() {
 		if (!$('.dlt-file-manager-wrap').length) return;
 		getConfig();
@@ -441,34 +670,61 @@
 
 		$('#dlt-fm-upload-input').on('change', function() {
 			var files = this.files;
-			if (!files || !files.length || !getConfig()) return;
-			var index = 0;
-			function uploadNext() {
-				if (index >= files.length) {
-					loadList();
-					$('#dlt-fm-upload-input').val('');
+			if (!files || !files.length) return;
+			uploadQueue(buildQueueFromFileList(files));
+		});
+
+		$('.dlt-fm-upload-folder-btn').on('click', function() {
+			$('#dlt-fm-upload-folder-input').click();
+		});
+
+		$('#dlt-fm-upload-folder-input').on('change', function() {
+			var files = this.files;
+			if (!files || !files.length) return;
+			uploadQueue(buildQueueFromFileList(files));
+		});
+
+		// Drag-and-drop (files and folders) upload.
+		var dragDepth = 0;
+		$('.dlt-fm-list-wrap').on('dragenter', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			dragDepth++;
+			$(this).addClass('dlt-fm-drop-active');
+		});
+
+		$('.dlt-fm-list-wrap').on('dragover', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			if (e.originalEvent && e.originalEvent.dataTransfer) {
+				e.originalEvent.dataTransfer.dropEffect = 'copy';
+			}
+		});
+
+		$('.dlt-fm-list-wrap').on('dragleave', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			dragDepth = Math.max(0, dragDepth - 1);
+			if (dragDepth === 0) {
+				$(this).removeClass('dlt-fm-drop-active');
+			}
+		});
+
+		$('.dlt-fm-list-wrap').on('drop', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			dragDepth = 0;
+			$(this).removeClass('dlt-fm-drop-active');
+			var dt = e.originalEvent ? e.originalEvent.dataTransfer : null;
+			if (!dt) return;
+
+			buildQueueFromDataTransfer(dt).then(function(queue) {
+				if (!queue.length) {
+					alert('No files found in dropped items.');
 					return;
 				}
-				var fd = new FormData();
-				fd.append('action', 'dlt_fm_upload');
-				fd.append('nonce', config.nonce);
-				fd.append('path', currentPath);
-				fd.append('file', files[index]);
-				$.ajax({
-					url: config.ajaxUrl,
-					type: 'POST',
-					data: fd,
-					processData: false,
-					contentType: false,
-					success: function() { index++; uploadNext(); },
-					error: function() {
-						alert('Upload failed for: ' + files[index].name);
-						index++;
-						uploadNext();
-					}
-				});
-			}
-			uploadNext();
+				uploadQueue(queue);
+			});
 		});
 	});
 })(jQuery);

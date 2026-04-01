@@ -79,14 +79,14 @@ add_action(
 		$img.attr('alt', url);
 	}
 	function run() {
-		$('.listing-details-wrapper.bgimage .bg_image_holder').each(function () {
+		$('.listing-details-wrapper.bgimage .bg_image_holder, .header-breadcrumb.bgimage .bg_image_holder').each(function () {
 			applyListingBg($(this));
 		});
 	}
 	$(function () {
 		run();
 	});
-	$(document).on('lazyloaded', '.listing-details-wrapper .bg_image_holder img', function () {
+	$(document).on('lazyloaded', '.listing-details-wrapper .bg_image_holder img, .header-breadcrumb .bg_image_holder img', function () {
 		applyListingBg($(this).closest('.bg_image_holder'));
 	});
 })(jQuery);

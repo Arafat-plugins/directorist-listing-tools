@@ -113,6 +113,10 @@ class Directorist_Listing_Tools_Apply_Functions {
 				'description' => __( 'CSS/JS to hide #elementor-panel-state-loading in the Elementor editor.', 'directorist-listing-tools' ),
 				'requires_elementor' => true,
 			),
+			'conflict_wp_rocket_pagination'   => array(
+				'label'       => __( '.conflict wp-rocket pagination', 'directorist-listing-tools' ),
+				'description' => __( 'Prevents WP Rocket Delay/Defer/Minify from breaking Directorist instant-search pagination on first guest visit.', 'directorist-listing-tools' ),
+			),
 		);
 	}
 
@@ -142,6 +146,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'enqueue_line_awesome'              => false,
 			'fix_directorist_bh_add_time_slot'  => false,
 			'hide_elementor_loading_state'      => false,
+			'conflict_wp_rocket_pagination'    => false,
 		);
 	}
 
@@ -245,6 +250,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		if ( ! empty( $opts['hide_elementor_loading_state'] ) ) {
 			require_once $compat_dir . 'hide-elementor-loading-state.php';
+		}
+		if ( ! empty( $opts['conflict_wp_rocket_pagination'] ) ) {
+			require_once $compat_dir . 'conflict-wp-rocket-pagination.php';
 		}
 	}
 

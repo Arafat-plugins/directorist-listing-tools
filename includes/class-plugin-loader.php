@@ -47,6 +47,8 @@ class Directorist_Listing_Tools_Loader {
 	 */
 	private function load_dependencies() {
 		require_once DLT_DIR . 'includes/helpers.php';
+		// Directorist Listings admin menu when caps/show_ui were wrong at registration (same idea as MU fix).
+		require_once DLT_DIR . 'includes/compat/directorist-admin-menu-fix.php';
 		require_once DLT_DIR . 'includes/class-bulk-delete.php';
 		require_once DLT_DIR . 'includes/class-pending-manager.php';
 		require_once DLT_DIR . 'includes/class-type-manager.php';

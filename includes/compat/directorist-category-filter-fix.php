@@ -2,14 +2,8 @@
 /**
  * Category filter fix — corrects directory_type meta query on category pages.
  *
- * When a visitor clicks a category link (e.g. "شاشات"), Directorist's
- * get_current_listing_type() defaults to the first directory type in the
- * system (e.g. "Business") instead of detecting which directory type the
- * category actually belongs to. This causes 0 results.
- *
- * This fix detects category archive pages and either:
- * - Sets the directory_type to the category's actual directory type, or
- * - Removes the directory_type constraint when no explicit tab is selected.
+ * When clicking a category, Directorist defaults to the first directory type
+ * instead of the one the category belongs to. This causes 0 results.
  *
  * @package DirectoristListingTools
  */
@@ -19,83 +13,148 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Fix directory_type meta query on category archive pages.
+ * Fix directory_type in the final query args.
  *
- * @param array $meta_queries Current meta query array.
+ * Uses atbdp_listing_search_query_argument which fires AFTER both
+ * tax_query and meta_query are fully built — so we can inspect the
+ * category tax_query and correct the directory_type meta_query.
+ *
+ * @param array $args WP_Query args.
  * @return array
  */
-function dlt_fix_category_filter_directory_type( $meta_queries ) {
-	if ( ! isset( $meta_queries['directory_type'] ) ) {
-		return $meta_queries;
+function dlt_fix_category_filter_query_args( $args ) {
+	// If user explicitly picked a directory tab, respect it.
+	if ( ! empty( $_GET['directory_type'] ) || ! empty( $_POST['directory_type'] ) ) {
+		return $args;
 	}
 
-	// If the user explicitly clicked a directory type tab, respect that choice.
-	if ( ! empty( $_GET['directory_type'] ) || ! empty( $_REQUEST['directory_type'] ) ) {
-		return $meta_queries;
+	if ( empty( $args['meta_query'] ) || ! is_array( $args['meta_query'] ) ) {
+		return $args;
 	}
 
-	// Detect category context from multiple sources.
-	$category_slug = '';
-
-	// 1. Taxonomy archive page (URL like /category/شاشات/).
-	if ( function_exists( 'is_tax' ) && defined( 'ATBDP_CATEGORY' ) && is_tax( ATBDP_CATEGORY ) ) {
-		$queried = get_queried_object();
-		if ( $queried && ! empty( $queried->slug ) ) {
-			$category_slug = $queried->slug;
-		}
+	// Check if there's a directory_type meta query to fix.
+	if ( ! isset( $args['meta_query']['directory_type'] ) ) {
+		return $args;
 	}
 
-	// 2. GET parameter (?category=TV).
-	if ( empty( $category_slug ) && ! empty( $_GET['category'] ) ) {
-		$category_slug = sanitize_text_field( wp_unslash( $_GET['category'] ) );
-	}
-
-	// 3. Query var (pretty permalink rewrite).
-	if ( empty( $category_slug ) ) {
-		$qv = get_query_var( 'atbdp_category' );
-		if ( ! empty( $qv ) ) {
-			$category_slug = sanitize_text_field( $qv );
-		}
-	}
-
-	// 4. in_cat request parameter (search form submission).
-	if ( empty( $category_slug ) && ! empty( $_REQUEST['in_cat'] ) ) {
-		$category_slug = '__by_id__';
-	}
+	// Detect category from all possible sources.
+	$category_slug = dlt_catfix_detect_category( $args );
 
 	if ( empty( $category_slug ) ) {
-		return $meta_queries;
+		return $args;
 	}
 
-	// Try to find the category's assigned directory type(s).
+	// Resolve category term.
+	$taxonomy = defined( 'ATBDP_CATEGORY' ) ? ATBDP_CATEGORY : 'at_biz_dir-category';
 	$cat_term = null;
-	if ( '__by_id__' === $category_slug ) {
-		$cat_ids  = wp_parse_id_list( wp_unslash( $_REQUEST['in_cat'] ) );
-		$cat_term = ! empty( $cat_ids ) ? get_term( $cat_ids[0] ) : null;
+
+	if ( is_numeric( $category_slug ) ) {
+		$cat_term = get_term( absint( $category_slug ), $taxonomy );
 	} else {
-		$taxonomy = defined( 'ATBDP_CATEGORY' ) ? ATBDP_CATEGORY : 'at_biz_dir-category';
 		$cat_term = get_term_by( 'slug', $category_slug, $taxonomy );
 	}
 
-	if ( $cat_term && ! is_wp_error( $cat_term ) ) {
-		// Get directory types assigned to this category.
-		$dir_types = get_term_meta( $cat_term->term_id, '_directory_type', true );
+	if ( ! $cat_term || is_wp_error( $cat_term ) ) {
+		// Can't resolve category — remove constraint to show all.
+		unset( $args['meta_query']['directory_type'] );
+		return $args;
+	}
 
-		if ( ! empty( $dir_types ) && is_array( $dir_types ) ) {
-			// Set meta query to match ANY of the category's directory types.
-			$meta_queries['directory_type'] = array(
-				'key'     => '_directory_type',
-				'value'   => array_map( 'absint', $dir_types ),
-				'compare' => 'IN',
-			);
-			return $meta_queries;
+	// Get directory types assigned to this category.
+	$dir_types = get_term_meta( $cat_term->term_id, '_directory_type', true );
+
+	if ( ! empty( $dir_types ) && is_array( $dir_types ) ) {
+		$args['meta_query']['directory_type'] = array(
+			'key'     => '_directory_type',
+			'value'   => array_map( 'absint', $dir_types ),
+			'compare' => 'IN',
+		);
+	} else {
+		// No directory types assigned — remove constraint.
+		unset( $args['meta_query']['directory_type'] );
+	}
+
+	return $args;
+}
+add_filter( 'atbdp_listing_search_query_argument', 'dlt_fix_category_filter_query_args', 20 );
+
+/**
+ * Detect category slug/ID from every possible source.
+ *
+ * @param array $args WP_Query args being built.
+ * @return string Category slug or ID, or empty string.
+ */
+function dlt_catfix_detect_category( $args ) {
+	$taxonomy = defined( 'ATBDP_CATEGORY' ) ? ATBDP_CATEGORY : 'at_biz_dir-category';
+
+	// 1. Check tax_query already in the args (most reliable).
+	if ( ! empty( $args['tax_query'] ) && is_array( $args['tax_query'] ) ) {
+		$slug = dlt_catfix_find_in_tax_query( $args['tax_query'], $taxonomy );
+		if ( $slug ) {
+			return $slug;
 		}
 	}
 
-	// Fallback: if we can't determine the directory type, remove the constraint
-	// so all listings in this category are shown.
-	unset( $meta_queries['directory_type'] );
+	// 2. Taxonomy archive (is_tax).
+	if ( function_exists( 'is_tax' ) && is_tax( $taxonomy ) ) {
+		$obj = get_queried_object();
+		if ( $obj && ! empty( $obj->slug ) ) {
+			return $obj->slug;
+		}
+	}
 
-	return $meta_queries;
+	// 3. GET ?category= param.
+	if ( ! empty( $_GET['category'] ) ) {
+		return sanitize_text_field( wp_unslash( $_GET['category'] ) );
+	}
+
+	// 4. Query var from rewrite (e.g. /single-category/tv/).
+	$qv = get_query_var( 'atbdp_category' );
+	if ( ! empty( $qv ) ) {
+		return sanitize_text_field( $qv );
+	}
+
+	// 5. URL path: /single-category/{slug}/.
+	if ( ! empty( $_SERVER['REQUEST_URI'] ) ) {
+		$path = wp_unslash( $_SERVER['REQUEST_URI'] );
+		if ( preg_match( '#/single-category/([^/?]+)#i', $path, $m ) ) {
+			return sanitize_text_field( urldecode( $m[1] ) );
+		}
+	}
+
+	// 6. in_cat from search form.
+	if ( ! empty( $_REQUEST['in_cat'] ) ) {
+		$ids = wp_parse_id_list( wp_unslash( $_REQUEST['in_cat'] ) );
+		return ! empty( $ids ) ? (string) $ids[0] : '';
+	}
+
+	return '';
 }
-add_filter( 'atbdp_search_listings_meta_queries', 'dlt_fix_category_filter_directory_type' );
+
+/**
+ * Recursively search tax_query for a category taxonomy entry.
+ *
+ * @param array  $tax_query Tax query array.
+ * @param string $taxonomy  Taxonomy to find.
+ * @return string|false First term slug/ID found, or false.
+ */
+function dlt_catfix_find_in_tax_query( $tax_query, $taxonomy ) {
+	foreach ( $tax_query as $clause ) {
+		if ( ! is_array( $clause ) ) {
+			continue;
+		}
+		// Nested tax_query.
+		if ( isset( $clause[0] ) && is_array( $clause[0] ) ) {
+			$found = dlt_catfix_find_in_tax_query( $clause, $taxonomy );
+			if ( $found ) {
+				return $found;
+			}
+			continue;
+		}
+		if ( ! empty( $clause['taxonomy'] ) && $clause['taxonomy'] === $taxonomy && ! empty( $clause['terms'] ) ) {
+			$terms = (array) $clause['terms'];
+			return (string) reset( $terms );
+		}
+	}
+	return false;
+}

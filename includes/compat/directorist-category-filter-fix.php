@@ -23,16 +23,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array
  */
 function dlt_fix_category_filter_query_args( $args ) {
-	// If user explicitly picked a directory tab, respect it.
-	if ( ! empty( $_GET['directory_type'] ) || ! empty( $_POST['directory_type'] ) ) {
-		return $args;
-	}
-
 	if ( empty( $args['meta_query'] ) || ! is_array( $args['meta_query'] ) ) {
 		return $args;
 	}
 
-	// Check if there's a directory_type meta query to fix.
 	if ( ! isset( $args['meta_query']['directory_type'] ) ) {
 		return $args;
 	}
@@ -40,7 +34,13 @@ function dlt_fix_category_filter_query_args( $args ) {
 	// Detect category from all possible sources.
 	$category_slug = dlt_catfix_detect_category( $args );
 
+	// No category context — nothing to fix.
 	if ( empty( $category_slug ) ) {
+		return $args;
+	}
+
+	// If user explicitly picked a directory tab, respect it.
+	if ( ! empty( $_GET['directory_type'] ) || ! empty( $_POST['directory_type'] ) ) {
 		return $args;
 	}
 

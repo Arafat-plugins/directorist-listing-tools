@@ -1,9 +1,10 @@
 <?php
 /**
- * Category filter fix — corrects directory_type meta query on category pages.
+ * Category filter fix.
  *
- * When clicking a category, Directorist defaults to the first directory type
- * instead of the one the category belongs to. This causes 0 results.
+ * Two-part fix:
+ * 1. Frontend: category links include ?directory_type= so the type is preserved on click.
+ * 2. Backend:  if directory_type is missing from URL, detect it from the category's term meta.
  *
  * @package DirectoristListingTools
  */
@@ -12,15 +13,56 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// ─── PART 1: Frontend — add directory_type to category links ───────────────
+
 /**
- * Fix directory_type in the final query args.
+ * When Directorist renders category links inside a directory type context,
+ * append ?directory_type= so clicking a category preserves the active type.
  *
- * Uses atbdp_listing_search_query_argument which fires AFTER both
- * tax_query and meta_query are fully built — so we can inspect the
- * category tax_query and correct the directory_type meta_query.
+ * Filter: atbdp_single_category (applied in atbdp_get_category_page).
+ */
+function dlt_catfix_add_directory_type_to_category_link( $link, $page_id, $term, $directory_type ) {
+	// Already has directory_type in URL — skip.
+	if ( ! empty( $directory_type ) ) {
+		return $link;
+	}
+
+	// Try to get current directory type from the request or the category's own meta.
+	$current_type = '';
+
+	// From request (user is on a directory-type-specific page).
+	if ( ! empty( $_REQUEST['directory_type'] ) ) {
+		$current_type = sanitize_text_field( wp_unslash( $_REQUEST['directory_type'] ) );
+	}
+
+	// Fallback: get from category term meta.
+	if ( empty( $current_type ) && $term ) {
+		$term_id   = is_object( $term ) ? $term->term_id : absint( $term );
+		$dir_types = get_term_meta( $term_id, '_directory_type', true );
+		if ( ! empty( $dir_types ) && is_array( $dir_types ) ) {
+			$first_type_id = absint( reset( $dir_types ) );
+			$type_term     = get_term( $first_type_id );
+			if ( $type_term && ! is_wp_error( $type_term ) ) {
+				$current_type = $type_term->slug;
+			}
+		}
+	}
+
+	if ( ! empty( $current_type ) ) {
+		$link = add_query_arg( 'directory_type', $current_type, $link );
+	}
+
+	return $link;
+}
+add_filter( 'atbdp_single_category', 'dlt_catfix_add_directory_type_to_category_link', 10, 4 );
+
+// ─── PART 2: Backend — fix meta query on category pages ────────────────────
+
+/**
+ * If we're on a category page without explicit directory_type in URL,
+ * set the meta query to the category's actual directory type(s).
  *
- * @param array $args WP_Query args.
- * @return array
+ * Filter: atbdp_listing_search_query_argument (final WP_Query args).
  */
 function dlt_fix_category_filter_query_args( $args ) {
 	if ( empty( $args['meta_query'] ) || ! is_array( $args['meta_query'] ) ) {
@@ -34,7 +76,6 @@ function dlt_fix_category_filter_query_args( $args ) {
 	// Detect category from all possible sources.
 	$category_slug = dlt_catfix_detect_category( $args );
 
-	// No category context — nothing to fix.
 	if ( empty( $category_slug ) ) {
 		return $args;
 	}
@@ -55,7 +96,6 @@ function dlt_fix_category_filter_query_args( $args ) {
 	}
 
 	if ( ! $cat_term || is_wp_error( $cat_term ) ) {
-		// Can't resolve category — remove constraint to show all.
 		unset( $args['meta_query']['directory_type'] );
 		return $args;
 	}
@@ -70,7 +110,6 @@ function dlt_fix_category_filter_query_args( $args ) {
 			'compare' => 'IN',
 		);
 	} else {
-		// No directory types assigned — remove constraint.
 		unset( $args['meta_query']['directory_type'] );
 	}
 
@@ -78,16 +117,15 @@ function dlt_fix_category_filter_query_args( $args ) {
 }
 add_filter( 'atbdp_listing_search_query_argument', 'dlt_fix_category_filter_query_args', 20 );
 
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
 /**
  * Detect category slug/ID from every possible source.
- *
- * @param array $args WP_Query args being built.
- * @return string Category slug or ID, or empty string.
  */
 function dlt_catfix_detect_category( $args ) {
 	$taxonomy = defined( 'ATBDP_CATEGORY' ) ? ATBDP_CATEGORY : 'at_biz_dir-category';
 
-	// 1. Check tax_query already in the args (most reliable).
+	// 1. tax_query in args.
 	if ( ! empty( $args['tax_query'] ) && is_array( $args['tax_query'] ) ) {
 		$slug = dlt_catfix_find_in_tax_query( $args['tax_query'], $taxonomy );
 		if ( $slug ) {
@@ -95,7 +133,7 @@ function dlt_catfix_detect_category( $args ) {
 		}
 	}
 
-	// 2. Taxonomy archive (is_tax).
+	// 2. Taxonomy archive.
 	if ( function_exists( 'is_tax' ) && is_tax( $taxonomy ) ) {
 		$obj = get_queried_object();
 		if ( $obj && ! empty( $obj->slug ) ) {
@@ -103,18 +141,18 @@ function dlt_catfix_detect_category( $args ) {
 		}
 	}
 
-	// 3. GET ?category= param.
+	// 3. GET ?category=.
 	if ( ! empty( $_GET['category'] ) ) {
 		return sanitize_text_field( wp_unslash( $_GET['category'] ) );
 	}
 
-	// 4. Query var from rewrite (e.g. /single-category/tv/).
+	// 4. Query var.
 	$qv = get_query_var( 'atbdp_category' );
 	if ( ! empty( $qv ) ) {
 		return sanitize_text_field( $qv );
 	}
 
-	// 5. URL path: /single-category/{slug}/.
+	// 5. URL path /single-category/{slug}/.
 	if ( ! empty( $_SERVER['REQUEST_URI'] ) ) {
 		$path = wp_unslash( $_SERVER['REQUEST_URI'] );
 		if ( preg_match( '#/single-category/([^/?]+)#i', $path, $m ) ) {
@@ -133,17 +171,12 @@ function dlt_catfix_detect_category( $args ) {
 
 /**
  * Recursively search tax_query for a category taxonomy entry.
- *
- * @param array  $tax_query Tax query array.
- * @param string $taxonomy  Taxonomy to find.
- * @return string|false First term slug/ID found, or false.
  */
 function dlt_catfix_find_in_tax_query( $tax_query, $taxonomy ) {
 	foreach ( $tax_query as $clause ) {
 		if ( ! is_array( $clause ) ) {
 			continue;
 		}
-		// Nested tax_query.
 		if ( isset( $clause[0] ) && is_array( $clause[0] ) ) {
 			$found = dlt_catfix_find_in_tax_query( $clause, $taxonomy );
 			if ( $found ) {

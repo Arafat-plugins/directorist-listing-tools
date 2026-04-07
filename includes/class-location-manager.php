@@ -61,9 +61,6 @@ class Directorist_Listing_Tools_Location_Manager {
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Location Manager', 'directorist-listing-tools' ); ?></h1>
-			<p class="description">
-				<?php esc_html_e( 'Select listings and apply a location to them.', 'directorist-listing-tools' ); ?>
-			</p>
 
 			<div id="dlt-location-ajax-message" style="display:none; margin: 20px 0;"></div>
 

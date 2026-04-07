@@ -77,10 +77,7 @@ class Directorist_Listing_Tools_Bulk_Delete {
 		
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Bulk Delete Listings', 'directorist-listing-tools' ); ?></h1>
-			<p class="description">
-				<?php esc_html_e( 'Select listings to delete, delete by number, or delete all listings at once.', 'directorist-listing-tools' ); ?>
-			</p>
+			<h1><?php esc_html_e( 'Bulk Delete', 'directorist-listing-tools' ); ?></h1>
 
 			<?php if ( ! empty( $results ) ) : ?>
 				<div class="dlt-results">

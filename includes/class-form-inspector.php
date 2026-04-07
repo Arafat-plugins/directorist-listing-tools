@@ -97,10 +97,7 @@ class Directorist_Listing_Tools_Form_Inspector {
 
 		?>
 		<div class="dlt-form-inspector-global card" style="max-width:960px;padding:12px 16px;margin:16px 0;">
-			<h2 style="margin-top:0;"><?php esc_html_e( 'Directorist global image options', 'directorist-listing-tools' ); ?></h2>
-			<p class="description">
-				<?php esc_html_e( 'These settings apply site-wide and interact with each directory’s submission form.', 'directorist-listing-tools' ); ?>
-			</p>
+			<h2 style="margin-top:0;"><?php esc_html_e( 'Global image options', 'directorist-listing-tools' ); ?></h2>
 			<table class="widefat striped" style="max-width:720px;">
 				<tbody>
 					<tr>
@@ -177,10 +174,7 @@ class Directorist_Listing_Tools_Form_Inspector {
 		}
 
 		?>
-		<h2><?php esc_html_e( 'All directory types — submission form summary', 'directorist-listing-tools' ); ?></h2>
-		<p class="description">
-			<?php esc_html_e( '“Active fields” are fields that appear in a form group (same rule Directorist uses when building the frontend form). Orphan keys are saved in the form config but not placed in any group.', 'directorist-listing-tools' ); ?>
-		</p>
+		<h2><?php esc_html_e( 'Submission form overview', 'directorist-listing-tools' ); ?></h2>
 		<table class="wp-list-table widefat fixed striped">
 			<thead>
 				<tr>
@@ -264,18 +258,18 @@ class Directorist_Listing_Tools_Form_Inspector {
 				<li>
 					<?php
 					echo $snapshot['has_image_in_groups']
-						? esc_html__( 'Gallery (image_upload) is included in at least one form section.', 'directorist-listing-tools' )
-						: esc_html__( 'Gallery (image_upload) is not in any section — frontend may not show an uploader, while backend can still require images depending on configuration.', 'directorist-listing-tools' );
+						? esc_html__( 'Gallery is in a form section.', 'directorist-listing-tools' )
+						: esc_html__( 'Gallery is not in any section.', 'directorist-listing-tools' );
 					?>
 				</li>
 				<li>
 					<?php
 					if ( ! empty( $snapshot['image_required_in_form'] ) ) {
-						echo '<strong style="color:#b32d2e;">' . esc_html__( 'Gallery is required on the live form (image_upload is in a section and marked required).', 'directorist-listing-tools' ) . '</strong>';
+						echo '<strong style=”color:#b32d2e;”>' . esc_html__( 'Gallery is required on the form.', 'directorist-listing-tools' ) . '</strong>';
 					} elseif ( ! empty( $snapshot['image_required_in_stored_only'] ) ) {
-						echo '<strong style="color:#b32d2e;">' . esc_html__( 'Gallery is marked required in saved field config but image_upload is not in any section — high risk of “required” errors without a visible uploader.', 'directorist-listing-tools' ) . '</strong>';
+						echo '<strong style=”color:#b32d2e;”>' . esc_html__( 'Gallery marked required but not in any section (risk of hidden errors).', 'directorist-listing-tools' ) . '</strong>';
 					} else {
-						echo esc_html__( 'Gallery is not marked required in the saved image_upload configuration (or there is no image_upload field).', 'directorist-listing-tools' );
+						echo esc_html__( 'Gallery is not required.', 'directorist-listing-tools' );
 					}
 					?>
 				</li>
@@ -305,14 +299,13 @@ class Directorist_Listing_Tools_Form_Inspector {
 		<?php
 		$img = $snapshot['image_upload_raw'];
 		if ( empty( $img ) ) {
-			echo '<p class="description">' . esc_html__( 'No image_upload field config stored for this directory (or it is only defined implicitly elsewhere).', 'directorist-listing-tools' ) . '</p>';
+			echo '<p class="description">' . esc_html__( 'No image_upload config found.', 'directorist-listing-tools' ) . '</p>';
 		} else {
 			echo '<pre style="overflow:auto;max-height:320px;background:#f6f7f7;padding:12px;border:1px solid #c3c4c7;">' . esc_html( wp_json_encode( $img, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) ) . '</pre>';
 		}
 		?>
 
-		<h3><?php esc_html_e( 'Raw submission_form_fields (full JSON)', 'directorist-listing-tools' ); ?></h3>
-		<p class="description"><?php esc_html_e( 'Use this for diffs between types or support tickets. Large configs may be long.', 'directorist-listing-tools' ); ?></p>
+		<h3><?php esc_html_e( 'Raw JSON', 'directorist-listing-tools' ); ?></h3>
 		<?php
 		$raw = $snapshot['raw_submission_form'];
 		if ( empty( $raw ) ) {

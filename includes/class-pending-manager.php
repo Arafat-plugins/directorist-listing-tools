@@ -50,10 +50,7 @@ class Directorist_Listing_Tools_Pending_Manager {
 
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e( 'Pending Listings Manager', 'directorist-listing-tools' ); ?></h1>
-			<p class="description">
-				<?php esc_html_e( 'Manage pending listings. Select multiple listings and apply bulk actions.', 'directorist-listing-tools' ); ?>
-			</p>
+			<h1><?php esc_html_e( 'Pending Listings', 'directorist-listing-tools' ); ?></h1>
 
 			<?php if ( ! empty( $message ) ) : ?>
 				<div class="dlt-message">

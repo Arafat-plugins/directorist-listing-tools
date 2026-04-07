@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Directorist Listing Tools
  * Plugin URI: https://github.com/arafat-plugins/directorist-listing-tools
- * Description: Advanced bulk listing management tools for Directorist. Bulk delete, manage pending listings, and change listing types.
- * Version: 2.1.0
+ * Description: Listing management tools for Directorist.
+ * Version: 2.2.0
  * Author: Arafat
  * Author URI: https://yourwebsite.com
  * License: GPL v2 or later
@@ -53,8 +53,8 @@ function dlt_activate() {
 	if ( ! is_plugin_active( 'directorist/directorist-base.php' ) && ! class_exists( 'Directorist_Base' ) && ! defined( 'ATBDP_VERSION' ) ) {
 		deactivate_plugins( DLT_BASENAME );
 		wp_die(
-			esc_html__( 'Directorist Listing Tools requires Directorist plugin to be installed and activated.', 'directorist-listing-tools' ),
-			esc_html__( 'Plugin Activation Error', 'directorist-listing-tools' ),
+			esc_html__( 'Directorist is required.', 'directorist-listing-tools' ),
+			esc_html__( 'Activation Error', 'directorist-listing-tools' ),
 			array( 'back_link' => true )
 		);
 	}
@@ -97,7 +97,7 @@ function dlt_directorist_missing_notice() {
 	<div class="notice notice-error">
 		<p>
 			<strong><?php esc_html_e( 'Directorist Listing Tools', 'directorist-listing-tools' ); ?>:</strong>
-			<?php esc_html_e( 'Directorist Listing Tools requires Directorist plugin to work. Please install and activate Directorist.', 'directorist-listing-tools' ); ?>
+			<?php esc_html_e( 'Directorist is required.', 'directorist-listing-tools' ); ?>
 		</p>
 	</div>
 	<?php

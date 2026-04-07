@@ -1,12 +1,14 @@
 /* File Manager – Directorist Listing Tools */
 
 .dlt-file-manager-wrap {
-	margin-top: 12px;
+	margin-top: 24px;
 }
 
 .dlt-file-manager-wrap .description {
-	margin-bottom: 14px;
-	color: #646970;
+	margin-bottom: 16px;
+	color: var(--dlt-text-secondary, #64748b);
+	font-size: 14px;
+	line-height: 1.6;
 }
 
 .dlt-fm-toolbar {
@@ -15,10 +17,11 @@
 	flex-wrap: wrap;
 	gap: 12px;
 	margin-bottom: 16px;
-	padding: 10px 12px;
-	background: #f6f7f7;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
+	padding: 12px 16px;
+	background: var(--dlt-bg-white, #fff);
+	border: 1px solid var(--dlt-border, #e2e8f0);
+	border-radius: var(--dlt-radius, 8px);
+	box-shadow: var(--dlt-shadow-sm, 0 1px 2px rgba(0,0,0,.05));
 }
 
 .dlt-fm-breadcrumb {
@@ -28,17 +31,19 @@
 }
 
 .dlt-fm-breadcrumb-sep {
-	color: #787c82;
+	color: var(--dlt-text-muted, #94a3b8);
 	margin: 0 4px;
 }
 
 .dlt-fm-breadcrumb-item {
 	text-decoration: none;
-	color: #2271b1;
+	color: var(--dlt-primary, #4f46e5);
+	font-weight: 500;
+	transition: color 0.2s ease;
 }
 
 .dlt-fm-breadcrumb-item:hover {
-	color: #135e96;
+	color: var(--dlt-primary-hover, #4338ca);
 	text-decoration: underline;
 }
 
@@ -67,18 +72,20 @@
 }
 
 .dlt-fm-list-wrap {
-	border: 1px solid #c3c4c7;
-	background: #fff;
-	border-radius: 4px;
+	border: 1px solid var(--dlt-border, #e2e8f0);
+	background: var(--dlt-bg-white, #fff);
+	border-radius: var(--dlt-radius, 8px);
 	min-height: 200px;
 	position: relative;
-	transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+	transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+	box-shadow: var(--dlt-shadow-sm, 0 1px 2px rgba(0,0,0,.05));
+	overflow: hidden;
 }
 
 .dlt-fm-list-wrap.dlt-fm-drop-active {
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1 inset;
-	background: #f0f6fc;
+	border-color: var(--dlt-primary, #4f46e5);
+	box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+	background: var(--dlt-primary-light, #eef2ff);
 }
 
 .dlt-fm-drop-hint {
@@ -94,16 +101,17 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: rgba(255, 255, 255, 0.9);
+	background: rgba(255, 255, 255, 0.92);
 	font-size: 14px;
-	color: #646970;
+	color: var(--dlt-text-secondary, #64748b);
+	backdrop-filter: blur(2px);
 }
 
 .dlt-fm-loading-ui {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	padding: 8px 10px;
+	gap: 12px;
+	padding: 10px 14px;
 	border: 0;
 	border-radius: 0;
 	background: transparent;
@@ -113,19 +121,18 @@
 .dlt-fm-loading-spinner {
 	display: inline-block;
 	position: relative;
-	width: 16px;
-	height: 16px;
+	width: 18px;
+	height: 18px;
 	border-radius: 50%;
 	flex-shrink: 0;
 	box-sizing: border-box;
-	opacity: 0.95;
 }
 
 .dlt-fm-loading-spinner::before {
 	content: '';
 	position: absolute;
 	inset: 0;
-	border: 2px solid #2271b1;
+	border: 2px solid var(--dlt-primary, #4f46e5);
 	border-right-color: transparent;
 	border-radius: 50%;
 	box-sizing: border-box;
@@ -138,7 +145,7 @@
 
 .dlt-fm-loading-status {
 	font-size: 13px;
-	color: #1d2327;
+	color: var(--dlt-text, #1e293b);
 }
 
 .dlt-fm-loading-status-text {
@@ -149,17 +156,17 @@
 .dlt-fm-loading-dots {
 	display: inline-block;
 	min-width: 16px;
-	color: #50575e;
+	color: var(--dlt-text-secondary, #64748b);
 	transition: opacity .2s ease;
 }
 
 .dlt-fm-loading.is-error .dlt-fm-loading-ui {
-	border-color: #d63638;
-	background: #fff6f6;
+	border-color: var(--dlt-danger, #dc2626);
+	background: var(--dlt-danger-bg, #fef2f2);
 }
 
 .dlt-fm-loading-error-icon {
-	color: #d63638;
+	color: var(--dlt-danger, #dc2626);
 }
 
 @keyframes dlt-fm-spin {
@@ -174,15 +181,16 @@
 }
 
 .dlt-fm-list {
-	padding: 8px 0;
+	padding: 4px 0;
 }
 
 .dlt-fm-row {
 	display: flex;
 	align-items: center;
-	padding: 8px 12px;
-	border-bottom: 1px solid #f0f0f1;
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--dlt-border, #e2e8f0);
 	gap: 12px;
+	transition: background 0.15s ease;
 }
 
 .dlt-fm-row:last-child {
@@ -190,49 +198,56 @@
 }
 
 .dlt-fm-row:hover {
-	background: #f6f7f7;
+	background: var(--dlt-bg, #f8fafc);
 }
 
 .dlt-fm-dir .dlt-fm-name {
-	font-weight: 500;
+	font-weight: 600;
 }
 
 .dlt-fm-icon {
 	flex-shrink: 0;
-	width: 24px;
-	height: 24px;
+	width: 28px;
+	height: 28px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	color: #2271b1;
+	color: var(--dlt-primary, #4f46e5);
+	background: var(--dlt-primary-light, #eef2ff);
+	border-radius: 6px;
+	font-size: 16px;
 }
 
 .dlt-fm-name {
 	flex: 1 1 auto;
 	min-width: 0;
+	font-size: 13px;
+	color: var(--dlt-text, #1e293b);
 }
 
 .dlt-fm-name.dlt-fm-nav {
-	color: #2271b1;
+	color: var(--dlt-primary, #4f46e5);
 	text-decoration: none;
+	font-weight: 500;
 }
 
 .dlt-fm-name.dlt-fm-nav:hover {
 	text-decoration: underline;
+	color: var(--dlt-primary-hover, #4338ca);
 }
 
 .dlt-fm-size {
 	width: 90px;
 	flex-shrink: 0;
-	color: #646970;
-	font-size: 13px;
+	color: var(--dlt-text-muted, #94a3b8);
+	font-size: 12px;
 }
 
 .dlt-fm-mtime {
 	width: 160px;
 	flex-shrink: 0;
-	color: #646970;
-	font-size: 13px;
+	color: var(--dlt-text-muted, #94a3b8);
+	font-size: 12px;
 }
 
 .dlt-fm-actions {
@@ -244,12 +259,13 @@
 
 .dlt-fm-actions .button {
 	margin: 0;
+	border-radius: 6px;
 }
 
 .dlt-fm-empty {
-	padding: 32px 16px;
+	padding: 40px 20px;
 	text-align: center;
-	color: #646970;
+	color: var(--dlt-text-muted, #94a3b8);
 	font-size: 14px;
 }
 
@@ -260,83 +276,108 @@
 	top: 0;
 	right: 0;
 	bottom: 0;
-	background: rgba(0, 0, 0, 0.5);
+	background: rgba(15, 23, 42, 0.5);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	z-index: 100000;
+	backdrop-filter: blur(4px);
 }
 
 .dlt-fm-modal-content {
-	background: #fff;
-	border-radius: 4px;
-	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-	min-width: 360px;
+	background: var(--dlt-bg-white, #fff);
+	border-radius: var(--dlt-radius-lg, 12px);
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+	min-width: 380px;
 	max-width: 90vw;
-}
-
-.dlt-fm-modal-content {
-	/* Allow large editor modals */
 	max-height: 90vh;
 	overflow: hidden;
+	animation: dlt-fm-modal-in 0.2s ease;
+}
+
+@keyframes dlt-fm-modal-in {
+	from { opacity: 0; transform: scale(0.96) translateY(8px); }
+	to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .dlt-fm-modal-title {
 	margin: 0;
-	padding: 16px 20px;
-	border-bottom: 1px solid #dcdcde;
+	padding: 18px 24px;
+	border-bottom: 1px solid var(--dlt-border, #e2e8f0);
 	font-size: 16px;
+	font-weight: 600;
+	color: var(--dlt-text, #1e293b);
 }
 
 .dlt-fm-modal-body {
-	padding: 20px;
+	padding: 24px;
 	overflow: auto;
-	max-height: calc(90vh - 120px);
+	max-height: calc(90vh - 130px);
 }
 
 .dlt-fm-modal-body p {
 	margin: 0 0 12px;
+	color: var(--dlt-text-secondary, #64748b);
+	line-height: 1.6;
 }
 
 .dlt-fm-modal-body label {
 	display: block;
 	margin-bottom: 6px;
 	font-weight: 600;
+	color: var(--dlt-text, #1e293b);
+	font-size: 13px;
 }
 
 .dlt-fm-modal-body .dlt-fm-prompt-input {
 	width: 100%;
 	max-width: 100%;
 	box-sizing: border-box;
+	border-radius: 6px;
+	border: 1px solid var(--dlt-border, #e2e8f0);
+	padding: 8px 12px;
+	font-size: 13px;
+	transition: all 0.2s ease;
+}
+
+.dlt-fm-modal-body .dlt-fm-prompt-input:focus {
+	border-color: var(--dlt-primary, #4f46e5);
+	box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+	outline: none;
 }
 
 .dlt-fm-modal-footer {
-	padding: 12px 20px;
-	border-top: 1px solid #dcdcde;
+	padding: 14px 24px;
+	border-top: 1px solid var(--dlt-border, #e2e8f0);
 	display: flex;
 	justify-content: flex-end;
 	gap: 8px;
+	background: var(--dlt-bg, #f8fafc);
 }
 
 .dlt-fm-editor-wrap {
 	display: flex;
 	flex-direction: column;
-	gap: 10px;
+	gap: 12px;
 }
 
 .dlt-fm-editor-path {
-	color: #1d2327;
+	color: var(--dlt-text, #1e293b);
 	font-size: 13px;
+	font-weight: 500;
 }
 
 .dlt-fm-editor-textarea {
 	width: 100%;
 	min-height: 55vh;
-	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\", \"Courier New\", monospace;
+	font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 	font-size: 12px;
-	line-height: 1.5;
+	line-height: 1.6;
+	border-radius: 6px;
+	border: 1px solid var(--dlt-border, #e2e8f0);
 }
 
 .dlt-fm-modal-footer .button {
 	margin: 0;
+	border-radius: 6px;
 }

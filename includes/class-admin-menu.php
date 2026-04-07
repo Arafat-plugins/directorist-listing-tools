@@ -52,7 +52,7 @@ class Directorist_Listing_Tools_Admin_Menu {
 		add_submenu_page(
 			$parent_slug,
 			esc_html__( 'Bulk Delete', 'directorist-listing-tools' ),
-			esc_html__( 'Listing Tools Bulk Delete', 'directorist-listing-tools' ),
+			esc_html__( 'Bulk Delete', 'directorist-listing-tools' ),
 			'manage_options',
 			'directorist-listing-tools-bulk-delete',
 			array( $this, 'render_bulk_delete_page' )
@@ -61,8 +61,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 		// Pending Manager.
 		add_submenu_page(
 			$parent_slug,
-			esc_html__( 'Pending Manager', 'directorist-listing-tools' ),
-			esc_html__( 'Listing Tools Pending', 'directorist-listing-tools' ),
+			esc_html__( 'Pending', 'directorist-listing-tools' ),
+			esc_html__( 'Pending', 'directorist-listing-tools' ),
 			'manage_options',
 			'directorist-listing-tools-pending',
 			array( $this, 'render_pending_manager_page' )
@@ -71,8 +71,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 		// Type Manager.
 		add_submenu_page(
 			$parent_slug,
-			esc_html__( 'Type Manager', 'directorist-listing-tools' ),
-			esc_html__( 'Listing Tools Type Manager', 'directorist-listing-tools' ),
+			esc_html__( 'Types', 'directorist-listing-tools' ),
+			esc_html__( 'Types', 'directorist-listing-tools' ),
 			'manage_options',
 			'directorist-listing-tools-type-manager',
 			array( $this, 'render_type_manager_page' )
@@ -81,8 +81,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 		// Location Manager.
 		add_submenu_page(
 			$parent_slug,
-			esc_html__( 'Location Manager', 'directorist-listing-tools' ),
-			esc_html__( 'Listing Tools Location Manager', 'directorist-listing-tools' ),
+			esc_html__( 'Locations', 'directorist-listing-tools' ),
+			esc_html__( 'Locations', 'directorist-listing-tools' ),
 			'manage_options',
 			'directorist-listing-tools-location-manager',
 			array( $this, 'render_location_manager_page' )

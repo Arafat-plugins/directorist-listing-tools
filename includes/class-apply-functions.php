@@ -56,66 +56,70 @@ class Directorist_Listing_Tools_Apply_Functions {
 		$this->features = array(
 			'directory_taxonomy_sync'          => array(
 				'label'       => __( 'Directory column & taxonomy sync', 'directorist-listing-tools' ),
-				'description' => __( 'All Listings “Directory” column from _directory_type meta; aligns taxonomy on listing save.', 'directorist-listing-tools' ),
+				'description' => __( 'Syncs “Directory” column from meta and aligns taxonomy on save.', 'directorist-listing-tools' ),
 			),
 			'wc_plan_checkout_bridge'          => array(
 				'label'       => __( 'WooCommerce plan checkout bridge', 'directorist-listing-tools' ),
-				'description' => __( 'With WooCommerce Pricing Plans: cart + Directorist checkout summary when redirect only passes atbdp_listing_id.', 'directorist-listing-tools' ),
+				'description' => __( 'Bridges cart + checkout summary for WC Pricing Plans.', 'directorist-listing-tools' ),
 				'requires_wc' => true,
 			),
 			'directorist_classic_editor'       => array(
-				'label'       => __( 'Directorist classic editor & link dialog', 'directorist-listing-tools' ),
-				'description' => __( 'Disables block editor for listings; ensures TinyMCE link / wplink on post edit screens.', 'directorist-listing-tools' ),
+				'label'       => __( 'Classic editor & link dialog', 'directorist-listing-tools' ),
+				'description' => __( 'Uses classic editor for listings with TinyMCE link dialog.', 'directorist-listing-tools' ),
 			),
 			'dlist_listing_bg_lazyfix'          => array(
-				'label'       => __( 'Listing hero background (lazy-load / Smush)', 'directorist-listing-tools' ),
-				'description' => __( 'Frontend script for .listing-details-wrapper.bgimage when optimizers replace img src with placeholders.', 'directorist-listing-tools' ),
+				'label'       => __( 'Listing hero background lazy-load fix', 'directorist-listing-tools' ),
+				'description' => __( 'Fixes hero background when image optimizers replace src.', 'directorist-listing-tools' ),
 			),
 			'fix_directorist_google_signin'     => array(
-				'label'       => __( 'Google sign-in button fallback', 'directorist-listing-tools' ),
-				'description' => __( 'Renders Google Identity button if .g_id_signin stays empty (Directorist Social Login).', 'directorist-listing-tools' ),
+				'label'       => __( 'Google sign-in fallback', 'directorist-listing-tools' ),
+				'description' => __( 'Renders Google Identity button if default render fails.', 'directorist-listing-tools' ),
 			),
 			'directorist_directory_type_guard'  => array(
 				'label'       => __( 'Directory type guard', 'directorist-listing-tools' ),
-				'description' => __( 'Re-applies directory type after listing create/update and self-heals on preview/payment URLs.', 'directorist-listing-tools' ),
+				'description' => __( 'Re-applies directory type after create/update and self-heals URLs.', 'directorist-listing-tools' ),
 			),
 			'directorist_term_directory_assignment_fix' => array(
-				'label'       => __( 'Term directory assignment fix (category/location)', 'directorist-listing-tools' ),
-				'description' => __( 'Preserves multiple selected directory types for category/location taxonomy term saves.', 'directorist-listing-tools' ),
+				'label'       => __( 'Term directory assignment fix', 'directorist-listing-tools' ),
+				'description' => __( 'Preserves multiple directory types on category/location term save.', 'directorist-listing-tools' ),
 			),
 			'directorist_wordfence_fix'         => array(
-				'label'       => __( 'Wordfence / AJAX login compatibility', 'directorist-listing-tools' ),
-				'description' => __( 'Intercepts redirect and re-validates authenticate for Directorist AJAX login actions.', 'directorist-listing-tools' ),
+				'label'       => __( 'Wordfence / AJAX login fix', 'directorist-listing-tools' ),
+				'description' => __( 'Fixes Directorist AJAX login with Wordfence active.', 'directorist-listing-tools' ),
 			),
 			'wpml_rewritebase_fix'              => array(
-				'label'       => __( 'WPML RewriteBase / .htaccess fix', 'directorist-listing-tools' ),
-				'description' => __( 'Normalizes mod_rewrite rules (RewriteBase /, index.php, wp-login) when WPML touches rules.', 'directorist-listing-tools' ),
+				'label'       => __( 'WPML .htaccess fix', 'directorist-listing-tools' ),
+				'description' => __( 'Normalizes rewrite rules when WPML modifies .htaccess.', 'directorist-listing-tools' ),
 			),
 			'directorist_css_variables_fix'     => array(
-				'label'       => __( 'Directorist CSS variables in wp_head', 'directorist-listing-tools' ),
-				'description' => __( 'Prints :root block from Directorist dynamic styles early on the frontend.', 'directorist-listing-tools' ),
+				'label'       => __( 'CSS variables in wp_head', 'directorist-listing-tools' ),
+				'description' => __( 'Outputs Directorist :root CSS variables early on frontend.', 'directorist-listing-tools' ),
 			),
 			'directorist_listing_expiration_fix' => array(
-				'label'       => __( 'Listing expiration / nearly-expired fix', 'directorist-listing-tools' ),
-				'description' => __( 'Sets expired meta on atbdp_listing_expired; supplemental renewal query after atbdp_schedule_task.', 'directorist-listing-tools' ),
+				'label'       => __( 'Listing expiration fix', 'directorist-listing-tools' ),
+				'description' => __( 'Fixes expired meta handling and renewal queries.', 'directorist-listing-tools' ),
 			),
 			'enqueue_line_awesome'              => array(
-				'label'       => __( 'Enqueue Line Awesome (frontend)', 'directorist-listing-tools' ),
-				'description' => __( 'Loads Directorist bundled line-awesome.min.css if not already enqueued.', 'directorist-listing-tools' ),
+				'label'       => __( 'Load Line Awesome icons', 'directorist-listing-tools' ),
+				'description' => __( 'Enqueues Line Awesome CSS on the frontend.', 'directorist-listing-tools' ),
 			),
 			'fix_directorist_bh_add_time_slot' => array(
-				'label'       => __( 'Business hours: add time slot / Select2', 'directorist-listing-tools' ),
-				'description' => __( 'On listing edit: dequeues WooCommerce Select2; safe Select2 destroy patch for BH scripts.', 'directorist-listing-tools' ),
+				'label'       => __( 'Business hours Select2 fix', 'directorist-listing-tools' ),
+				'description' => __( 'Fixes Select2 conflict with WooCommerce on listing edit.', 'directorist-listing-tools' ),
 				'requires_wc' => true,
 			),
 			'hide_elementor_loading_state'      => array(
-				'label'       => __( 'Hide Elementor editor loading overlay', 'directorist-listing-tools' ),
-				'description' => __( 'CSS/JS to hide #elementor-panel-state-loading in the Elementor editor.', 'directorist-listing-tools' ),
+				'label'       => __( 'Hide Elementor loading overlay', 'directorist-listing-tools' ),
+				'description' => __( 'Hides the Elementor editor loading state panel.', 'directorist-listing-tools' ),
 				'requires_elementor' => true,
 			),
 			'conflict_wp_rocket_pagination'   => array(
-				'label'       => __( '.conflict wp-rocket pagination', 'directorist-listing-tools' ),
-				'description' => __( 'Prevents WP Rocket Delay/Defer/Minify from breaking Directorist instant-search pagination on first guest visit.', 'directorist-listing-tools' ),
+				'label'       => __( 'WP Rocket pagination fix', 'directorist-listing-tools' ),
+				'description' => __( 'Excludes Directorist JS from WP Rocket optimization.', 'directorist-listing-tools' ),
+			),
+			'directorist_category_filter_fix' => array(
+				'label'       => __( 'Category filter fix', 'directorist-listing-tools' ),
+				'description' => __( 'Shows all listings in a category regardless of directory type.', 'directorist-listing-tools' ),
 			),
 		);
 	}
@@ -147,6 +151,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'fix_directorist_bh_add_time_slot'  => false,
 			'hide_elementor_loading_state'      => false,
 			'conflict_wp_rocket_pagination'    => false,
+			'directorist_category_filter_fix'  => false,
 		);
 	}
 
@@ -254,6 +259,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		if ( ! empty( $opts['conflict_wp_rocket_pagination'] ) ) {
 			require_once $compat_dir . 'conflict-wp-rocket-pagination.php';
 		}
+		if ( ! empty( $opts['directorist_category_filter_fix'] ) ) {
+			require_once $compat_dir . 'directorist-category-filter-fix.php';
+		}
 	}
 
 	/**
@@ -276,13 +284,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 		$return_url = admin_url( 'edit.php?post_type=' . dlt_get_post_type() . '&page=directorist-listing-tools-apply-functions' );
 		?>
 		<div class="wrap dlt-apply-functions-wrap">
-			<h2 class="screen-reader-text"><?php esc_html_e( 'Apply functions', 'directorist-listing-tools' ); ?></h2>
-
-			<div class="dlt-af-intro">
-				<p class="description">
-					<?php esc_html_e( 'Turn on optional behaviors site-wide. Leave a feature off if you do not need it or if it conflicts with custom code. More toggles may be added here over time.', 'directorist-listing-tools' ); ?>
-				</p>
-			</div>
+			<h2 class="screen-reader-text"><?php esc_html_e( 'Apply Functions', 'directorist-listing-tools' ); ?></h2>
 
 			<form method="post" action="<?php echo esc_url( $form_act ); ?>" class="dlt-af-form">
 				<input type="hidden" name="action" value="dlt_save_apply_functions" />

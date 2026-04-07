@@ -4,169 +4,105 @@
  * @package DirectoristListingTools
  */
 
-
-.dlt-results,
-.dlt-message {
-	margin: 20px 0;
-	padding: 10px;
-}
-
-.dlt-results .notice,
-.dlt-message .notice {
-	margin: 0;
-}
-
-.button-danger {
-	background-color: #dc3232;
-	border-color: #dc3232;
-	color: #fff;
-}
-
-.button-danger:hover,
-.button-danger:focus {
-	background-color: #a00;
-	border-color: #a00;
-	color: #fff;
-}
-
-#dlt-pending-form .tablenav,
-#dlt-bulk-delete-form .tablenav {
-	margin-bottom: 20px;
-}
-
-#dlt-pending-form .bulkactions,
-#dlt-bulk-delete-form .bulkactions {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-
-#dlt-pending-form .bulkactions select {
-	margin-right: 0;
-}
-
-#dlt-pending-form table.wp-list-table,
-#dlt-bulk-delete-form table.wp-list-table {
-	margin-top: 10px;
-}
-
-#dlt-pending-form .listing-checkbox,
-#dlt-bulk-delete-form .listing-checkbox {
-	margin: 0;
-}
-
-.dlt-listing-count {
-	font-weight: 600;
-}
-
-#cb-select-all {
-	margin: 0;
-}
-
-#dlt-type-manager-container .tablenav {
-	margin-bottom: 20px;
-}
-
-#dlt-type-manager-container .bulkactions {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-
-#dlt-type-manager-container table.wp-list-table {
-	margin-top: 10px;
-}
-
-#dlt-type-manager-container .dlt-type-listing-checkbox {
-	margin: 0;
-}
-
-#dlt-type-cb-select-all {
-	margin: 0;
-}
-
-#dlt-type-ajax-message {
-	margin: 20px 0;
-}
-
-#dlt-location-manager-container .tablenav {
-	margin-bottom: 20px;
-}
-
-#dlt-location-manager-container .bulkactions {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-
-#dlt-location-manager-container table.wp-list-table {
-	margin-top: 10px;
-}
-
-#dlt-location-manager-container .dlt-location-listing-checkbox {
-	margin: 0;
-}
-
-#dlt-location-cb-select-all {
-	margin: 0;
-}
-
-#dlt-location-ajax-message {
-	margin: 20px 0;
+/* ============================================================
+   CSS Custom Properties
+   ============================================================ */
+:root {
+	--dlt-primary: #4f46e5;
+	--dlt-primary-hover: #4338ca;
+	--dlt-primary-light: #eef2ff;
+	--dlt-primary-border: #c7d2fe;
+	--dlt-success: #059669;
+	--dlt-success-bg: #ecfdf5;
+	--dlt-success-border: #a7f3d0;
+	--dlt-danger: #dc2626;
+	--dlt-danger-bg: #fef2f2;
+	--dlt-danger-hover: #b91c1c;
+	--dlt-warning: #d97706;
+	--dlt-warning-bg: #fffbeb;
+	--dlt-warning-border: #fde68a;
+	--dlt-text: #1e293b;
+	--dlt-text-secondary: #64748b;
+	--dlt-text-muted: #94a3b8;
+	--dlt-bg: #f8fafc;
+	--dlt-bg-white: #ffffff;
+	--dlt-border: #e2e8f0;
+	--dlt-border-hover: #cbd5e1;
+	--dlt-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+	--dlt-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+	--dlt-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+	--dlt-radius: 8px;
+	--dlt-radius-lg: 12px;
+	--dlt-radius-full: 9999px;
+	--dlt-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ============================================================
-   Main hub heading — matches Automation plugin gradient title
-   (see automation/assets/js/site-title-gradient.js on frontend).
+   Global resets for plugin pages
    ============================================================ */
+.dlt-main-settings-wrap,
+.dlt-main-settings-wrap *,
+.dlt-main-settings-wrap *::before,
+.dlt-main-settings-wrap *::after {
+	box-sizing: border-box;
+}
+
+/* ============================================================
+   Page Header & Gradient Title
+   ============================================================ */
+.dlt-main-settings-wrap {
+	margin: 16px 20px 0 2px;
+}
 
 .dlt-main-settings-wrap .dlt-main-heading {
 	display: inline-flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 8px;
+	gap: 10px;
 	line-height: 1.2;
+	margin: 0 0 4px 0;
+	padding: 0;
 }
 
 .dlt-main-settings-wrap .dlt-main-heading__icon {
-	font-size: 28px;
-	width: 28px;
-	height: 28px;
-	color: #2271b1;
+	font-size: 26px;
+	width: 44px;
+	height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, var(--dlt-primary), #7c3aed);
+	color: #fff;
+	border-radius: var(--dlt-radius);
+	box-shadow: var(--dlt-shadow);
 }
 
 .dlt-main-settings-wrap .dlt-automation-gradient-title {
-	font-weight: 700;
+	font-weight: 800;
+	font-size: 24px;
 	letter-spacing: -0.03em;
 	line-height: 1.15;
 	background: linear-gradient(
 		135deg,
-		#e11d48 0%,
-		#2dd4bf 52%,
-		#4f46e5 100%
+		#4f46e5 0%,
+		#7c3aed 30%,
+		#ec4899 60%,
+		#f59e0b 100%
 	);
 	background-size: 200% 200%;
 	-webkit-background-clip: text;
 	background-clip: text;
 	color: transparent;
 	-webkit-text-fill-color: transparent;
-	animation: dlt-automation-gradient-shift 6s ease-in-out infinite;
+	animation: dlt-automation-gradient-shift 8s ease-in-out infinite;
 }
 
 @keyframes dlt-automation-gradient-shift {
-
-	0%,
-	100% {
-		background-position: 0% 50%;
-	}
-
-	50% {
-		background-position: 100% 50%;
-	}
+	0%, 100% { background-position: 0% 50%; }
+	50% { background-position: 100% 50%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-
 	.dlt-main-settings-wrap .dlt-automation-gradient-title {
 		animation: none;
 		background-position: 0% 50%;
@@ -174,88 +110,252 @@
 }
 
 /* ============================================================
-   Display Settings Page — Tabbed Layout
+   Tab Navigation — modern pill style
    ============================================================ */
+.dlt-main-settings-wrap .dlt-main-tab-nav.nav-tab-wrapper {
+	margin-top: 20px !important;
+	border-bottom: none;
+	background: var(--dlt-bg-white);
+	border: 1px solid var(--dlt-border);
+	border-radius: var(--dlt-radius-lg);
+	padding: 6px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	box-shadow: var(--dlt-shadow-sm);
+}
 
+.dlt-main-settings-wrap .dlt-main-tab-nav .nav-tab {
+	border: none;
+	background: transparent;
+	color: var(--dlt-text-secondary);
+	font-size: 13px;
+	font-weight: 500;
+	padding: 8px 16px;
+	border-radius: var(--dlt-radius);
+	margin: 0;
+	transition: all var(--dlt-transition);
+	text-decoration: none;
+	white-space: nowrap;
+	line-height: 1.4;
+}
+
+.dlt-main-settings-wrap .dlt-main-tab-nav .nav-tab:hover {
+	background: var(--dlt-bg);
+	color: var(--dlt-text);
+}
+
+.dlt-main-settings-wrap .dlt-main-tab-nav .nav-tab.nav-tab-active {
+	background: var(--dlt-primary);
+	color: #fff;
+	font-weight: 600;
+	box-shadow: 0 1px 3px rgba(79, 70, 229, 0.4);
+}
+
+.dlt-main-settings-wrap .dlt-main-tab-nav .nav-tab:focus {
+	box-shadow: none;
+	outline: 2px solid var(--dlt-primary);
+	outline-offset: -2px;
+}
+
+.dlt-main-settings-wrap .dlt-main-tab-nav .nav-tab.nav-tab-active:focus {
+	outline: 2px solid rgba(255, 255, 255, 0.5);
+	outline-offset: -2px;
+}
+
+/* ============================================================
+   Results & Messages
+   ============================================================ */
+.dlt-results,
+.dlt-message {
+	margin: 20px 0;
+	padding: 0;
+}
+
+.dlt-results .notice,
+.dlt-message .notice {
+	margin: 0;
+	border-radius: var(--dlt-radius);
+	border-left-width: 4px;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.button-danger {
+	background: var(--dlt-danger) !important;
+	border-color: var(--dlt-danger) !important;
+	color: #fff !important;
+	border-radius: 6px;
+	transition: all var(--dlt-transition);
+}
+
+.button-danger:hover,
+.button-danger:focus {
+	background: var(--dlt-danger-hover) !important;
+	border-color: var(--dlt-danger-hover) !important;
+	color: #fff !important;
+	box-shadow: 0 1px 3px rgba(220, 38, 38, 0.4);
+}
+
+/* ============================================================
+   Table Areas — Pending, Bulk Delete, Type/Location Managers
+   ============================================================ */
+#dlt-pending-form .tablenav,
+#dlt-bulk-delete-form .tablenav,
+#dlt-type-manager-container .tablenav,
+#dlt-location-manager-container .tablenav {
+	margin-bottom: 16px;
+}
+
+#dlt-pending-form .bulkactions,
+#dlt-bulk-delete-form .bulkactions,
+#dlt-type-manager-container .bulkactions,
+#dlt-location-manager-container .bulkactions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+#dlt-pending-form .bulkactions select,
+#dlt-bulk-delete-form .bulkactions select {
+	margin-right: 0;
+}
+
+#dlt-pending-form table.wp-list-table,
+#dlt-bulk-delete-form table.wp-list-table,
+#dlt-type-manager-container table.wp-list-table,
+#dlt-location-manager-container table.wp-list-table {
+	margin-top: 8px;
+	border: 1px solid var(--dlt-border);
+	border-radius: var(--dlt-radius);
+	overflow: hidden;
+	box-shadow: var(--dlt-shadow-sm);
+}
+
+#dlt-pending-form .listing-checkbox,
+#dlt-bulk-delete-form .listing-checkbox,
+#dlt-type-manager-container .dlt-type-listing-checkbox,
+#dlt-location-manager-container .dlt-location-listing-checkbox {
+	margin: 0;
+}
+
+.dlt-listing-count {
+	font-weight: 600;
+	color: var(--dlt-primary);
+}
+
+#cb-select-all,
+#dlt-type-cb-select-all,
+#dlt-location-cb-select-all {
+	margin: 0;
+}
+
+#dlt-type-ajax-message,
+#dlt-location-ajax-message {
+	margin: 20px 0;
+}
+
+/* ============================================================
+   Display Settings Page
+   ============================================================ */
 .dlt-display-settings-wrap {
 	max-width: 1100px;
+	margin-top: 24px;
 }
 
 .dlt-display-settings-wrap > .description {
-	color: #646970;
-	font-size: 13px;
-	margin-bottom: 20px;
+	color: var(--dlt-text-secondary);
+	font-size: 14px;
+	margin-bottom: 24px;
+	line-height: 1.6;
 }
 
-/* ── Persistent Directory Type Bar ──────────────────────────── */
-
+/* ── Persistent Directory Type Bar ─────────────────────────── */
 .dlt-ds-dir-type-bar {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 10px;
-	background: #fff;
-	border: 1px solid #e2e4e7;
-	border-radius: 4px;
-	padding: 12px 16px;
-	margin-bottom: 16px;
-	box-shadow: 0 1px 3px rgba(0,0,0,.05);
+	gap: 12px;
+	background: var(--dlt-bg-white);
+	border: 1px solid var(--dlt-border);
+	border-radius: var(--dlt-radius);
+	padding: 14px 20px;
+	margin-bottom: 20px;
+	box-shadow: var(--dlt-shadow-sm);
 }
 
 .dlt-ds-dir-icon {
-	color: #2271b1;
+	color: var(--dlt-primary);
 	font-size: 18px;
 	vertical-align: middle;
 }
 
 .dlt-ds-dir-type-bar label {
 	font-size: 13px;
-	color: #1d2327;
+	font-weight: 500;
+	color: var(--dlt-text);
 	white-space: nowrap;
 }
 
 .dlt-ds-dir-type-bar select {
 	min-width: 260px;
 	max-width: 420px;
-	height: 34px;
+	height: 36px;
 	font-size: 13px;
-	border-radius: 4px;
-	border: 1px solid #8c8f94;
-	padding: 0 8px;
+	border-radius: 6px;
+	border: 1px solid var(--dlt-border);
+	padding: 0 10px;
+	transition: all var(--dlt-transition);
+	background: var(--dlt-bg-white);
 }
 
 .dlt-ds-dir-type-bar select:focus {
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	border-color: var(--dlt-primary);
+	box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 	outline: none;
 }
 
 .dlt-ds-no-types {
 	font-size: 12px;
-	color: #b32d2e;
+	color: var(--dlt-danger);
+	font-weight: 500;
 }
 
-/* ── Tab Navigation ─────────────────────────────────────────── */
-
+/* ── Display Settings Tab Navigation ──────────────────────── */
 .dlt-ds-tab-nav {
 	margin-bottom: 0;
-	border-bottom: 1px solid #c3c4c7;
+	border-bottom: 2px solid var(--dlt-border);
+	display: flex;
+	gap: 0;
 }
 
 .dlt-ds-tab-nav .nav-tab {
 	display: inline-flex;
 	align-items: center;
-	gap: 5px;
+	gap: 6px;
 	font-size: 13px;
-	padding: 8px 14px;
-	border-bottom: none;
-	margin-bottom: -1px;
+	font-weight: 500;
+	padding: 10px 18px;
+	border: none;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -2px;
+	background: transparent;
+	color: var(--dlt-text-secondary);
+	transition: all var(--dlt-transition);
+	text-decoration: none;
+}
+
+.dlt-ds-tab-nav .nav-tab:hover {
+	color: var(--dlt-primary);
+	border-bottom-color: var(--dlt-primary-border);
 }
 
 .dlt-ds-tab-nav .nav-tab.nav-tab-active {
-	background: #fff;
-	border-bottom-color: #fff;
-	color: #1d2327;
+	background: transparent;
+	border-bottom-color: var(--dlt-primary);
+	color: var(--dlt-primary);
+	font-weight: 600;
 }
 
 .dlt-tab-icon {
@@ -263,51 +363,55 @@
 	vertical-align: middle;
 }
 
-/* ── Tab Panels ─────────────────────────────────────────────── */
-
+/* ── Tab Panels ──────────────────────────────────────────── */
 .dlt-ds-tab-panel {
-	background: #fff;
-	border: 1px solid #c3c4c7;
+	background: var(--dlt-bg-white);
+	border: 1px solid var(--dlt-border);
 	border-top: none;
-	padding: 20px;
+	border-radius: 0 0 var(--dlt-radius) var(--dlt-radius);
+	padding: 24px;
 }
 
 .dlt-ds-panel-intro {
-	color: #646970;
+	color: var(--dlt-text-secondary);
 	font-size: 13px;
-	margin: 0 0 16px 0;
-	padding: 9px 12px;
-	background: #f6f7f7;
-	border-left: 4px solid #2271b1;
-	border-radius: 2px;
+	margin: 0 0 20px 0;
+	padding: 12px 16px;
+	background: var(--dlt-primary-light);
+	border-left: 4px solid var(--dlt-primary);
+	border-radius: 0 6px 6px 0;
 	line-height: 1.6;
 }
 
-/* Table */
+/* ── Settings Table ──────────────────────────────────────── */
 .dlt-ds-table {
-	border-collapse: collapse;
+	border-collapse: separate;
+	border-spacing: 0;
 	width: 100%;
-	background: #fff;
+	background: var(--dlt-bg-white);
+	border: 1px solid var(--dlt-border);
+	border-radius: var(--dlt-radius);
+	overflow: hidden;
 }
 
 .dlt-ds-table thead th {
-	background: #f6f7f7;
-	color: #1d2327;
+	background: var(--dlt-bg);
+	color: var(--dlt-text-secondary);
 	font-weight: 600;
-	font-size: 12px;
+	font-size: 11px;
 	text-transform: uppercase;
-	letter-spacing: 0.5px;
-	padding: 10px 14px;
-	border-bottom: 2px solid #e2e4e7;
+	letter-spacing: 0.6px;
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--dlt-border);
 }
 
 .dlt-ds-table tbody tr {
-	border-bottom: 1px solid #f0f0f1;
-	transition: background 0.15s ease;
+	border-bottom: 1px solid var(--dlt-border);
+	transition: background var(--dlt-transition);
 }
 
 .dlt-ds-table tbody tr:hover {
-	background: #f9f9fb;
+	background: var(--dlt-bg);
 }
 
 .dlt-ds-table tbody tr:last-child {
@@ -315,51 +419,56 @@
 }
 
 .dlt-ds-label-cell {
-	padding: 13px 14px;
+	padding: 14px 16px;
 	vertical-align: top;
 }
 
 .dlt-ds-label-cell strong {
 	display: block;
-	color: #1d2327;
+	color: var(--dlt-text);
 	font-size: 13px;
+	font-weight: 600;
 	margin-bottom: 4px;
 }
 
 .dlt-ds-option-key {
 	display: inline-block;
 	font-size: 10px;
-	background: #f0f0f1;
-	color: #50575e;
-	padding: 1px 6px;
-	border-radius: 3px;
-	margin-top: 3px;
-	font-family: monospace;
+	background: var(--dlt-bg);
+	color: var(--dlt-text-muted);
+	padding: 2px 8px;
+	border-radius: var(--dlt-radius-full);
+	margin-top: 4px;
+	font-family: 'SF Mono', SFMono-Regular, ui-monospace, 'DejaVu Sans Mono', Menlo, Consolas, monospace;
+	border: 1px solid var(--dlt-border);
 }
 
 .dlt-ds-inverse-note {
 	display: inline-block;
 	font-size: 11px;
-	color: #d63638;
+	color: var(--dlt-danger);
 	font-style: italic;
 	margin-left: 4px;
 }
 
 .dlt-ds-desc-cell {
-	padding: 13px 14px;
+	padding: 14px 16px;
 	font-size: 12px;
-	color: #646970;
+	color: var(--dlt-text-secondary);
 	vertical-align: top;
+	line-height: 1.6;
 }
 
 .dlt-ds-toggle-cell {
-	padding: 10px 14px;
+	padding: 12px 16px;
 	text-align: center;
 	vertical-align: middle;
 	white-space: nowrap;
 }
 
-/* ── Toggle Switch ─────────────────────────────────────── */
+/* ============================================================
+   Toggle Switch — Modern iOS-like style
+   ============================================================ */
 .dlt-ds-toggle {
 	display: inline-flex;
 	align-items: center;
@@ -368,9 +477,6 @@
 	margin-right: 8px;
 }
 
-/* Hide the raw checkbox but keep it in DOM so :checked CSS selector still works.
-   Using position/opacity instead of display:none because WP admin CSS can
-   override display:none on checkboxes with !important rules. */
 .dlt-ds-toggle-input,
 .dlt-ds-dir-toggle-input {
 	position: absolute !important;
@@ -385,12 +491,12 @@
 .dlt-ds-toggle-slider {
 	position: relative;
 	display: inline-block;
-	width: 44px;
-	height: 24px;
-	background: #c3c4c7;
-	border-radius: 24px;
-	transition: background 0.25s ease;
-	box-shadow: inset 0 1px 3px rgba(0,0,0,.15);
+	width: 48px;
+	height: 26px;
+	background: #cbd5e1;
+	border-radius: var(--dlt-radius-full);
+	transition: background var(--dlt-transition);
+	flex-shrink: 0;
 }
 
 .dlt-ds-toggle-slider::before {
@@ -398,66 +504,69 @@
 	position: absolute;
 	left: 3px;
 	top: 3px;
-	width: 18px;
-	height: 18px;
+	width: 20px;
+	height: 20px;
 	background: #fff;
 	border-radius: 50%;
-	transition: transform 0.25s ease;
-	box-shadow: 0 1px 3px rgba(0,0,0,.25);
+	transition: transform var(--dlt-transition);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.dlt-ds-toggle-input:checked + .dlt-ds-toggle-slider {
-	background: #2271b1;
-}
-
-.dlt-ds-toggle-input:checked + .dlt-ds-toggle-slider::before {
-	transform: translateX(20px);
-}
-
-/* Same "on" state for per-directory toggles (different input class) */
+.dlt-ds-toggle-input:checked + .dlt-ds-toggle-slider,
 .dlt-ds-dir-toggle-input:checked + .dlt-ds-toggle-slider {
-	background: #2271b1;
+	background: var(--dlt-primary);
 }
 
+.dlt-ds-toggle-input:checked + .dlt-ds-toggle-slider::before,
 .dlt-ds-dir-toggle-input:checked + .dlt-ds-toggle-slider::before {
-	transform: translateX(20px);
+	transform: translateX(22px);
+}
+
+.dlt-ds-toggle-input:focus + .dlt-ds-toggle-slider,
+.dlt-ds-dir-toggle-input:focus + .dlt-ds-toggle-slider {
+	box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
 }
 
 /* loading state */
 .dlt-ds-toggle.is-loading .dlt-ds-toggle-slider {
-	opacity: 0.6;
+	opacity: 0.5;
 	pointer-events: none;
 }
 
-/* ── Status Badge ──────────────────────────────────────── */
+/* ============================================================
+   Status Badge — pill style
+   ============================================================ */
 .dlt-ds-badge {
-	display: inline-block;
-	padding: 2px 10px;
-	border-radius: 12px;
+	display: inline-flex;
+	align-items: center;
+	padding: 3px 12px;
+	border-radius: var(--dlt-radius-full);
 	font-size: 11px;
 	font-weight: 600;
 	vertical-align: middle;
 	letter-spacing: 0.3px;
-	transition: background 0.2s, color 0.2s;
+	transition: all var(--dlt-transition);
 }
 
 .dlt-ds-badge-on {
-	background: #d7f0d2;
-	color: #1a7919;
+	background: var(--dlt-success-bg);
+	color: var(--dlt-success);
+	border: 1px solid var(--dlt-success-border);
 }
 
 .dlt-ds-badge-off {
-	background: #f8f0f0;
-	color: #99282b;
+	background: var(--dlt-danger-bg);
+	color: var(--dlt-danger);
+	border: 1px solid #fecaca;
 }
 
 /* Row tint */
 .dlt-ds-table tbody tr.is-active .dlt-ds-label-cell strong {
-	color: #1d2327;
+	color: var(--dlt-text);
 }
 
 .dlt-ds-table tbody tr.is-inactive .dlt-ds-label-cell strong {
-	color: #8c8f94;
+	color: var(--dlt-text-muted);
 }
 
 /* Spinner override */
@@ -471,18 +580,20 @@
 /* Global message bar */
 #dlt-ds-global-message .notice {
 	margin: 0;
-	padding: 8px 14px;
+	padding: 10px 16px;
+	border-radius: var(--dlt-radius);
 }
 
 /* Footer note */
 .dlt-ds-footer {
-	margin-top: 12px;
-	padding: 14px 16px;
-	background: #f6f7f7;
-	border: 1px solid #e2e4e7;
-	border-radius: 4px;
+	margin-top: 16px;
+	padding: 16px 20px;
+	background: var(--dlt-bg);
+	border: 1px solid var(--dlt-border);
+	border-radius: var(--dlt-radius);
 	font-size: 12px;
-	color: #646970;
+	color: var(--dlt-text-secondary);
+	line-height: 1.6;
 }
 
 .dlt-ds-footer p {
@@ -490,13 +601,14 @@
 }
 
 .dlt-ds-footer code {
-	background: #eee;
-	padding: 1px 5px;
-	border-radius: 3px;
+	background: var(--dlt-bg-white);
+	padding: 2px 6px;
+	border-radius: 4px;
+	border: 1px solid var(--dlt-border);
+	font-size: 11px;
 }
 
-/* ── Directory Type Spinner (inside persistent bar) ──────────── */
-
+/* ── Directory Type Spinner ──────────────────────────────────── */
 .dlt-ds-dir-spinner.spinner {
 	visibility: hidden;
 	float: none !important;
@@ -505,80 +617,87 @@
 }
 
 /* ── Directory table row states ──────────────────────────────── */
-
 .dlt-ds-table tbody tr.dlt-ds-dir-row.is-inactive .dlt-ds-label-cell strong {
-	color: #8c8f94;
+	color: var(--dlt-text-muted);
 }
 
 .dlt-ds-table tbody tr.dlt-ds-dir-row.is-active .dlt-ds-label-cell strong {
-	color: #1d2327;
+	color: var(--dlt-text);
 }
 
 /* ── Listings With Map — Select field ────────────────────────── */
-
 .dlt-ds-lwm-select {
 	min-width: 140px;
-	height: 32px;
+	height: 34px;
 	font-size: 13px;
-	padding: 0 6px;
-	border-radius: 4px;
-	border: 1px solid #8c8f94;
+	padding: 0 8px;
+	border-radius: 6px;
+	border: 1px solid var(--dlt-border);
 	vertical-align: middle;
+	transition: all var(--dlt-transition);
+	background: var(--dlt-bg-white);
 }
 
 .dlt-ds-lwm-select:focus {
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	border-color: var(--dlt-primary);
+	box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 	outline: none;
 }
 
 .dlt-ds-lwm-saved-msg {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
 	font-size: 11px;
 	font-weight: 600;
-	color: #1a7919;
-	margin-left: 6px;
+	color: var(--dlt-success);
+	margin-left: 8px;
 	vertical-align: middle;
 }
 
-/* ── Plan Price Manager ────────────────────────────────────────── */
-
+/* ============================================================
+   Plan Price Manager
+   ============================================================ */
 .dlt-plan-manager-wrap {
 	max-width: 1200px;
+	margin-top: 24px;
 }
 
 .dlt-pm-table-wrap {
-	margin-top: 20px;
+	margin-top: 24px;
 }
 
 .dlt-pm-table-wrap .postbox-header {
-	border-bottom: 1px solid #e2e4e7;
-	background: linear-gradient(135deg, #f0f4fc 0%, #f6f7f7 100%);
+	border-bottom: 1px solid var(--dlt-border);
+	background: linear-gradient(135deg, var(--dlt-primary-light) 0%, var(--dlt-bg) 100%);
 }
 
 .dlt-pm-table-wrap .hndle {
 	font-size: 14px;
-	padding: 12px 16px;
+	font-weight: 600;
+	padding: 14px 20px;
+	color: var(--dlt-text);
 }
 
-/* Table */
+/* Plan Table */
 .dlt-pm-table {
 	margin: 0;
 	border-top: none;
 }
 
 .dlt-pm-table th {
-	background: #f6f7f7;
-	font-size: 12px;
+	background: var(--dlt-bg);
+	font-size: 11px;
 	text-transform: uppercase;
-	letter-spacing: .4px;
-	color: #646970;
-	padding: 10px 12px;
-	border-bottom: 1px solid #e2e4e7;
+	letter-spacing: .5px;
+	font-weight: 600;
+	color: var(--dlt-text-secondary);
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--dlt-border);
 }
 
 .dlt-pm-table td {
-	padding: 10px 12px;
+	padding: 12px 14px;
 	vertical-align: middle;
 }
 
@@ -586,29 +705,37 @@
 .dlt-pm-input {
 	width: 90px;
 	text-align: right;
-	padding: 4px 6px;
-	border-radius: 3px;
-	border: 1px solid #8c8f94;
+	padding: 6px 8px;
+	border-radius: 6px;
+	border: 1px solid var(--dlt-border);
 	font-size: 13px;
+	transition: all var(--dlt-transition);
 }
 
 .dlt-pm-input:focus {
-	border-color: #2271b1;
-	box-shadow: 0 0 0 1px #2271b1;
+	border-color: var(--dlt-primary);
+	box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 	outline: none;
 }
 
 /* Select */
 .dlt-pm-select {
 	font-size: 12px;
-	padding: 4px 6px;
-	border-radius: 3px;
-	border: 1px solid #8c8f94;
+	padding: 6px 8px;
+	border-radius: 6px;
+	border: 1px solid var(--dlt-border);
+	transition: all var(--dlt-transition);
+}
+
+.dlt-pm-select:focus {
+	border-color: var(--dlt-primary);
+	box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+	outline: none;
 }
 
 /* Disabled fields */
 .dlt-pm-field-disabled {
-	opacity: 0.4;
+	opacity: 0.35;
 	pointer-events: none;
 }
 
@@ -619,39 +746,44 @@
 
 .dlt-pm-edit-link {
 	font-size: 11px;
-	color: #2271b1;
+	color: var(--dlt-primary);
 	text-decoration: none;
+	font-weight: 500;
+	transition: color var(--dlt-transition);
 }
 
 .dlt-pm-edit-link:hover {
+	color: var(--dlt-primary-hover);
 	text-decoration: underline;
 }
 
-/* Status badge */
+/* Plan status badge */
 .dlt-pm-status {
 	font-size: 10px;
 	font-weight: 600;
 	text-transform: uppercase;
-	letter-spacing: .4px;
-	padding: 1px 7px;
-	border-radius: 10px;
+	letter-spacing: .5px;
+	padding: 3px 10px;
+	border-radius: var(--dlt-radius-full);
 }
 
 .dlt-pm-status-pub {
-	background: #d7f0d2;
-	color: #1a7919;
+	background: var(--dlt-success-bg);
+	color: var(--dlt-success);
+	border: 1px solid var(--dlt-success-border);
 }
 
 .dlt-pm-status-draft {
-	background: #f0e8d2;
-	color: #8a6c00;
+	background: var(--dlt-warning-bg);
+	color: var(--dlt-warning);
+	border: 1px solid var(--dlt-warning-border);
 }
 
 /* Effective price cell */
 .dlt-pm-effective-value {
-	font-size: 12px;
-	font-weight: 500;
-	color: #1d2327;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--dlt-text);
 }
 
 /* Row spinner */
@@ -664,7 +796,7 @@
 
 /* Row saved flash */
 @keyframes dltPmSavedFlash {
-	0%   { background-color: #d7f0d2; }
+	0%   { background-color: var(--dlt-success-bg); }
 	100% { background-color: transparent; }
 }
 
@@ -672,10 +804,16 @@
 	animation: dltPmSavedFlash 1.5s ease forwards;
 }
 
-/* ── Social Login Diagnostics ───────────────────────────────────────────── */
+/* ============================================================
+   Social Login Diagnostics
+   ============================================================ */
+.dlt-social-login-diagnostics-wrap {
+	margin-top: 24px;
+}
 
 .dlt-social-login-diagnostics-wrap .description {
-	margin-bottom: 14px;
+	margin-bottom: 16px;
+	color: var(--dlt-text-secondary);
 }
 
 .dlt-sld-config-table td,
@@ -686,10 +824,14 @@
 .dlt-sld-config-table code {
 	font-size: 12px;
 	word-break: break-all;
+	background: var(--dlt-bg);
+	padding: 2px 6px;
+	border-radius: 4px;
+	border: 1px solid var(--dlt-border);
 }
 
 .dlt-sld-empty {
-	color: #787c82;
+	color: var(--dlt-text-muted);
 }
 
 .dlt-sld-actions {
@@ -701,7 +843,7 @@
 .dlt-sld-actions .button .dashicons {
 	vertical-align: middle;
 	margin-right: 4px;
-	transition: transform .4s linear;
+	transition: transform 0.4s linear;
 }
 
 .dlt-sld-spinner {
@@ -709,59 +851,69 @@
 	margin: 0 !important;
 }
 
-/* Cards */
+/* Diagnostics Cards */
 .dlt-sld-card {
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-	padding: 16px 20px;
-	margin-bottom: 14px;
-	box-shadow: 0 1px 2px rgba(0,0,0,.04);
+	background: var(--dlt-bg-white);
+	border: 1px solid var(--dlt-border);
+	border-radius: var(--dlt-radius);
+	padding: 20px 24px;
+	margin-bottom: 16px;
+	box-shadow: var(--dlt-shadow-sm);
 	max-width: 700px;
+	transition: box-shadow var(--dlt-transition);
+}
+
+.dlt-sld-card:hover {
+	box-shadow: var(--dlt-shadow);
 }
 
 .dlt-sld-card-header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-bottom: 10px;
+	margin-bottom: 12px;
 }
 
 .dlt-sld-card-header h3 {
 	margin: 0;
 	font-size: 15px;
+	font-weight: 600;
+	color: var(--dlt-text);
 }
 
-/* Badges */
+/* Diagnostics Badges */
 .dlt-sld-badge {
 	font-size: 11px;
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: .04em;
-	padding: 3px 8px;
-	border-radius: 3px;
+	padding: 4px 10px;
+	border-radius: var(--dlt-radius-full);
 }
 
 .dlt-sld-badge.dlt-sld-ok {
-	background: #d7f0d2;
-	color: #1a7919;
+	background: var(--dlt-success-bg);
+	color: var(--dlt-success);
+	border: 1px solid var(--dlt-success-border);
 }
 
 .dlt-sld-badge.dlt-sld-warn {
-	background: #fcf9e8;
-	color: #996600;
+	background: var(--dlt-warning-bg);
+	color: var(--dlt-warning);
+	border: 1px solid var(--dlt-warning-border);
 }
 
 .dlt-sld-badge.dlt-sld-fail {
-	background: #fcf0f1;
-	color: #d63638;
+	background: var(--dlt-danger-bg);
+	color: var(--dlt-danger);
+	border: 1px solid #fecaca;
 }
 
 /* Status row */
 .dlt-sld-status {
 	display: flex;
 	align-items: flex-start;
-	gap: 7px;
+	gap: 8px;
 	margin-bottom: 8px;
 }
 
@@ -773,29 +925,29 @@
 	margin-top: 1px;
 }
 
-.dlt-sld-status.dlt-sld-ok  { color: #00a32a; }
-.dlt-sld-status.dlt-sld-warn { color: #996600; }
-.dlt-sld-status.dlt-sld-fail { color: #d63638; }
+.dlt-sld-status.dlt-sld-ok  { color: var(--dlt-success); }
+.dlt-sld-status.dlt-sld-warn { color: var(--dlt-warning); }
+.dlt-sld-status.dlt-sld-fail { color: var(--dlt-danger); }
 
 /* Detail */
 .dlt-sld-detail {
 	margin: 0;
 	font-size: 13px;
-	color: #50575e;
+	color: var(--dlt-text-secondary);
 	line-height: 1.55;
-	padding-left: 27px;
+	padding-left: 28px;
 }
 
-/* General notices */
+/* Notices */
 .dlt-sld-notice {
 	display: flex;
 	align-items: flex-start;
-	gap: 8px;
-	padding: 12px 16px;
-	margin-bottom: 14px;
+	gap: 10px;
+	padding: 14px 18px;
+	margin-bottom: 16px;
 	max-width: 700px;
 	border-left: 4px solid;
-	border-radius: 0 4px 4px 0;
+	border-radius: 0 var(--dlt-radius) var(--dlt-radius) 0;
 }
 
 .dlt-sld-notice .dashicons {
@@ -804,57 +956,77 @@
 }
 
 .dlt-sld-notice-warning {
-	border-color: #dba617;
-	background: #fcf9e8;
-	color: #3c434a;
+	border-color: var(--dlt-warning);
+	background: var(--dlt-warning-bg);
+	color: var(--dlt-text);
 }
 
 /* Error (request-level) */
 .dlt-sld-error {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 12px 16px;
-	background: #fcf0f1;
-	border-left: 4px solid #d63638;
-	border-radius: 0 4px 4px 0;
+	gap: 10px;
+	padding: 14px 18px;
+	background: var(--dlt-danger-bg);
+	border-left: 4px solid var(--dlt-danger);
+	border-radius: 0 var(--dlt-radius) var(--dlt-radius) 0;
 	max-width: 700px;
-	color: #3c434a;
+	color: var(--dlt-text);
 }
 
-/* ─── Apply functions tab ───────────────────────────────────────── */
+/* ============================================================
+   Apply Functions Tab — Card Grid
+   ============================================================ */
 .dlt-apply-functions-wrap {
-	max-width: 920px;
-	margin-top: 8px;
+	max-width: 960px;
+	margin-top: 24px;
 }
 
 .dlt-af-intro {
-	margin-bottom: 20px;
+	margin-bottom: 24px;
+}
+
+.dlt-af-intro .description {
+	font-size: 14px;
+	color: var(--dlt-text-secondary);
+	line-height: 1.6;
 }
 
 .dlt-af-feature-list {
 	list-style: none;
 	margin: 0;
 	padding: 0;
-	display: flex;
-	flex-direction: column;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
 	gap: 16px;
+}
+
+@media (max-width: 860px) {
+	.dlt-af-feature-list {
+		grid-template-columns: 1fr;
+	}
 }
 
 .dlt-af-card {
 	margin: 0;
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-radius: 6px;
-	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	background: var(--dlt-bg-white);
+	border: 1px solid var(--dlt-border);
+	border-radius: var(--dlt-radius);
+	box-shadow: var(--dlt-shadow-sm);
+	transition: all var(--dlt-transition);
+}
+
+.dlt-af-card:hover {
+	border-color: var(--dlt-border-hover);
+	box-shadow: var(--dlt-shadow);
 }
 
 .dlt-af-card__body {
-	padding: 18px 20px;
+	padding: 20px 24px;
 }
 
 .dlt-af-card__header {
-	margin-bottom: 10px;
+	margin-bottom: 8px;
 }
 
 .dlt-af-toggle.dlt-ds-toggle {
@@ -867,9 +1039,9 @@
 }
 
 .dlt-af-card__title {
-	font-size: 15px;
+	font-size: 14px;
 	font-weight: 600;
-	color: #1d2327;
+	color: var(--dlt-text);
 	line-height: 1.4;
 	flex: 1;
 	min-width: 0;
@@ -877,21 +1049,69 @@
 
 .dlt-af-card__desc {
 	margin: 0;
-	line-height: 1.55;
-	color: #646970;
+	font-size: 13px;
+	line-height: 1.6;
+	color: var(--dlt-text-secondary);
 }
 
 .dlt-af-card__notice {
-	margin: 12px 0 0;
-	padding: 10px 12px;
-	background: #fcf9e8;
-	border-left: 4px solid #dba617;
-	border-radius: 0 4px 4px 0;
+	margin: 14px 0 0;
+	padding: 10px 14px;
+	background: var(--dlt-warning-bg);
+	border-left: 4px solid var(--dlt-warning);
+	border-radius: 0 6px 6px 0;
 	font-size: 13px;
-	color: #50575e;
+	color: var(--dlt-text-secondary);
 }
 
 .dlt-af-form .submit {
-	margin-top: 20px;
+	margin-top: 24px;
 }
 
+.dlt-af-form .submit .button-primary {
+	padding: 6px 24px;
+	height: auto;
+	font-size: 13px;
+	font-weight: 600;
+	border-radius: 6px;
+	background: var(--dlt-primary);
+	border-color: var(--dlt-primary);
+	transition: all var(--dlt-transition);
+}
+
+.dlt-af-form .submit .button-primary:hover {
+	background: var(--dlt-primary-hover);
+	border-color: var(--dlt-primary-hover);
+	box-shadow: 0 1px 3px rgba(79, 70, 229, 0.4);
+}
+
+/* ============================================================
+   WP Core Overrides — scoped to our pages
+   ============================================================ */
+
+/* Better notice styling inside our wrap */
+.dlt-main-settings-wrap + .wrap .notice,
+.dlt-apply-functions-wrap .notice,
+.dlt-display-settings-wrap .notice,
+.dlt-plan-manager-wrap .notice {
+	border-radius: var(--dlt-radius);
+	border-left-width: 4px;
+	box-shadow: var(--dlt-shadow-sm);
+}
+
+/* wp-list-table inside our pages */
+.dlt-main-settings-wrap ~ .wrap .wp-list-table {
+	border: 1px solid var(--dlt-border);
+	border-radius: var(--dlt-radius);
+	overflow: hidden;
+	box-shadow: var(--dlt-shadow-sm);
+}
+
+.dlt-main-settings-wrap ~ .wrap .wp-list-table thead th {
+	background: var(--dlt-bg);
+	border-bottom: 1px solid var(--dlt-border);
+}
+
+.dlt-main-settings-wrap ~ .wrap .wp-list-table tbody tr:hover {
+	background: var(--dlt-bg);
+}

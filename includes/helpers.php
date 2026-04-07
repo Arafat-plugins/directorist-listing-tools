@@ -194,38 +194,69 @@ function dlt_render_main_settings_tabs() {
 	$parent_url = admin_url( 'edit.php?post_type=' . dlt_get_post_type() );
 
 	$tabs = array(
-		'directorist-listing-tools-display-settings'   => __( 'Display Settings', 'directorist-listing-tools' ),
-		'directorist-listing-tools-apply-functions'    => __( 'Apply functions', 'directorist-listing-tools' ),
-		'directorist-listing-tools-bulk-delete'        => __( 'Bulk Delete', 'directorist-listing-tools' ),
-		'directorist-listing-tools-pending'          => __( 'Pending Manager', 'directorist-listing-tools' ),
-		'directorist-listing-tools-type-manager'     => __( 'Type Manager', 'directorist-listing-tools' ),
-		'directorist-listing-tools-location-manager' => __( 'Location Manager', 'directorist-listing-tools' ),
-		'directorist-listing-tools-plan-manager'     => __( 'Plan Prices', 'directorist-listing-tools' ),
-		'directorist-listing-tools-file-manager'     => __( 'File Managing', 'directorist-listing-tools' ),
-		'directorist-listing-tools-form-inspector'   => __( 'Form Inspector', 'directorist-listing-tools' ),
+		'directorist-listing-tools-display-settings' => array(
+			'label' => __( 'Display', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-visibility',
+		),
+		'directorist-listing-tools-apply-functions' => array(
+			'label' => __( 'Apply Functions', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-admin-plugins',
+		),
+		'directorist-listing-tools-bulk-delete' => array(
+			'label' => __( 'Bulk Delete', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-trash',
+		),
+		'directorist-listing-tools-pending' => array(
+			'label' => __( 'Pending', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-clock',
+		),
+		'directorist-listing-tools-type-manager' => array(
+			'label' => __( 'Types', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-category',
+		),
+		'directorist-listing-tools-location-manager' => array(
+			'label' => __( 'Locations', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-location',
+		),
+		'directorist-listing-tools-plan-manager' => array(
+			'label' => __( 'Plans', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-money-alt',
+		),
+		'directorist-listing-tools-file-manager' => array(
+			'label' => __( 'Files', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-media-code',
+		),
+		'directorist-listing-tools-form-inspector' => array(
+			'label' => __( 'Form Inspector', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-search',
+		),
 	);
 	if ( dlt_is_social_login_active() ) {
-		$tabs['directorist-listing-tools-social-login'] = __( 'Social Login', 'directorist-listing-tools' );
+		$tabs['directorist-listing-tools-social-login'] = array(
+			'label' => __( 'Social Login', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-share',
+		);
 	}
 
 	?>
 	<div class="wrap dlt-main-settings-wrap">
 		<h1 class="wp-heading-inline dlt-main-heading">
-			<span class="dashicons dashicons-admin-generic dlt-main-heading__icon" aria-hidden="true"></span>
+			<span class="dashicons dashicons-admin-tools dlt-main-heading__icon" aria-hidden="true"></span>
 			<span class="dlt-automation-gradient-title"><?php esc_html_e( 'Directorist Tools', 'directorist-listing-tools' ); ?></span>
 		</h1>
-		<h2 class="nav-tab-wrapper dlt-main-tab-nav" style="margin-top:16px;">
-			<?php foreach ( $tabs as $slug => $label ) : ?>
+		<div class="nav-tab-wrapper dlt-main-tab-nav">
+			<?php foreach ( $tabs as $slug => $tab ) : ?>
 				<?php
-				$url      = add_query_arg( array( 'page' => $slug ), $parent_url );
+				$url       = add_query_arg( array( 'page' => $slug ), $parent_url );
 				$is_active = ( $slug === $current_page );
 				?>
 				<a href="<?php echo esc_url( $url ); ?>"
 				   class="nav-tab <?php echo $is_active ? 'nav-tab-active' : ''; ?>">
-					<?php echo esc_html( $label ); ?>
+					<span class="dashicons <?php echo esc_attr( $tab['icon'] ); ?>" style="font-size:15px;width:15px;height:15px;vertical-align:middle;margin-right:3px;" aria-hidden="true"></span>
+					<?php echo esc_html( $tab['label'] ); ?>
 				</a>
 			<?php endforeach; ?>
-		</h2>
+		</div>
 	</div>
 	<?php
 }

@@ -121,6 +121,10 @@ class Directorist_Listing_Tools_Apply_Functions {
 				'label'       => __( 'Category filter fix', 'directorist-listing-tools' ),
 				'description' => __( 'Shows all listings in a category regardless of directory type.', 'directorist-listing-tools' ),
 			),
+			'fix_builder_title_toggle_save' => array(
+				'label'       => __( 'Builder title toggle save fix', 'directorist-listing-tools' ),
+				'description' => __( 'Fixes listing header toggles not saving in directory builder.', 'directorist-listing-tools' ),
+			),
 		);
 	}
 
@@ -152,6 +156,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'hide_elementor_loading_state'      => false,
 			'conflict_wp_rocket_pagination'    => false,
 			'directorist_category_filter_fix'  => false,
+			'fix_builder_title_toggle_save'   => false,
 		);
 	}
 
@@ -261,6 +266,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		if ( ! empty( $opts['directorist_category_filter_fix'] ) ) {
 			require_once $compat_dir . 'directorist-category-filter-fix.php';
+		}
+		if ( ! empty( $opts['fix_builder_title_toggle_save'] ) ) {
+			require_once $compat_dir . 'fix-builder-title-toggle-save.php';
 		}
 	}
 

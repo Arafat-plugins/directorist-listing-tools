@@ -35,6 +35,11 @@ function dlt_catfix_add_directory_type_to_category_link( $link, $page_id, $term,
 		$current_type = sanitize_text_field( wp_unslash( $_REQUEST['directory_type'] ) );
 	}
 
+	// From AJAX: Directorist search home sends listing_type (directory type slug) via POST.
+	if ( empty( $current_type ) && ! empty( $_POST['listing_type'] ) ) {
+		$current_type = sanitize_text_field( wp_unslash( $_POST['listing_type'] ) );
+	}
+
 	// Fallback: get from category term meta.
 	if ( empty( $current_type ) && $term ) {
 		$term_id   = is_object( $term ) ? $term->term_id : absint( $term );

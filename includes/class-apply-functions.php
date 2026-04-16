@@ -129,6 +129,10 @@ class Directorist_Listing_Tools_Apply_Functions {
 				'label'       => __( 'Builder title toggle save fix', 'directorist-listing-tools' ),
 				'description' => __( 'Fixes listing header toggles not saving in directory builder.', 'directorist-listing-tools' ),
 			),
+			'directorist_auto_approve_author' => array(
+				'label'       => __( 'Auto-approve author registration', 'directorist-listing-tools' ),
+				'description' => __( 'Automatically approves author accounts on registration — removes the pending approve/deny step from the admin user list.', 'directorist-listing-tools' ),
+			),
 		);
 	}
 
@@ -161,7 +165,8 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'conflict_wp_rocket_pagination'    => false,
 			'directorist_category_filter_fix'  => false,
 			'directorist_keyword_search_fix'   => true,
-			'fix_builder_title_toggle_save'   => false,
+			'fix_builder_title_toggle_save'    => false,
+			'directorist_auto_approve_author'  => false,
 		);
 	}
 
@@ -277,6 +282,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		if ( ! empty( $opts['fix_builder_title_toggle_save'] ) ) {
 			require_once $compat_dir . 'fix-builder-title-toggle-save.php';
+		}
+		if ( ! empty( $opts['directorist_auto_approve_author'] ) ) {
+			require_once $compat_dir . 'directorist-auto-approve-author.php';
 		}
 	}
 

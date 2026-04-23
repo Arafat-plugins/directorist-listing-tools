@@ -63,6 +63,11 @@ class Directorist_Listing_Tools_Apply_Functions {
 				'description' => __( 'Bridges cart + checkout summary for WC Pricing Plans.', 'directorist-listing-tools' ),
 				'requires_wc' => true,
 			),
+			'wc_checkout_endpoint_conflict_fix' => array(
+				'label'       => __( 'WooCommerce checkout endpoint conflict fix', 'directorist-listing-tools' ),
+				'description' => __( 'Restores WooCommerce order-received and order-pay routes when generic Directorist checkout rewrites hijack them.', 'directorist-listing-tools' ),
+				'requires_wc' => true,
+			),
 			'directorist_classic_editor'       => array(
 				'label'       => __( 'Classic editor & link dialog', 'directorist-listing-tools' ),
 				'description' => __( 'Uses classic editor for listings with TinyMCE link dialog.', 'directorist-listing-tools' ),
@@ -150,6 +155,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 		return array(
 			'directory_taxonomy_sync'           => false,
 			'wc_plan_checkout_bridge'          => false,
+			'wc_checkout_endpoint_conflict_fix' => true,
 			'directorist_classic_editor'        => false,
 			'dlist_listing_bg_lazyfix'          => false,
 			'fix_directorist_google_signin'     => false,
@@ -233,6 +239,10 @@ class Directorist_Listing_Tools_Apply_Functions {
 		if ( ! empty( $opts['wc_plan_checkout_bridge'] ) && class_exists( 'WooCommerce' ) ) {
 			require_once DLT_DIR . 'includes/apply-features/wc-plan-checkout-bridge.php';
 			dlt_af_bootstrap_wc_plan_checkout_bridge();
+		}
+		if ( ! empty( $opts['wc_checkout_endpoint_conflict_fix'] ) && class_exists( 'WooCommerce' ) ) {
+			require_once DLT_DIR . 'includes/apply-features/wc-checkout-endpoint-conflict-fix.php';
+			dlt_af_bootstrap_wc_checkout_endpoint_conflict_fix();
 		}
 
 		if ( ! empty( $opts['directorist_classic_editor'] ) ) {

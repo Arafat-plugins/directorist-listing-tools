@@ -138,6 +138,10 @@ class Directorist_Listing_Tools_Apply_Functions {
 				'label'       => __( 'Auto-approve author registration', 'directorist-listing-tools' ),
 				'description' => __( 'Automatically approves author accounts on registration — removes the pending approve/deny step from the admin user list.', 'directorist-listing-tools' ),
 			),
+			'pricing_type_tabs_open_add_listing_page' => array(
+				'label'       => __( 'Pricing type tabs open add listing page', 'directorist-listing-tools' ),
+				'description' => __( 'Makes pricing plan directory type tabs open the configured Add Listing page with the clicked directory type.', 'directorist-listing-tools' ),
+			),
 		);
 	}
 
@@ -173,6 +177,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'directorist_keyword_search_fix'   => true,
 			'fix_builder_title_toggle_save'    => false,
 			'directorist_auto_approve_author'  => false,
+			'pricing_type_tabs_open_add_listing_page' => true,
 		);
 	}
 
@@ -295,6 +300,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		if ( ! empty( $opts['directorist_auto_approve_author'] ) ) {
 			require_once $compat_dir . 'directorist-auto-approve-author.php';
+		}
+		if ( ! empty( $opts['pricing_type_tabs_open_add_listing_page'] ) ) {
+			require_once $compat_dir . 'pricing-type-tabs-open-add-listing-page.php';
 		}
 	}
 

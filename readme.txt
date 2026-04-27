@@ -4,7 +4,7 @@ Tags: directorist, listings, bulk, management, admin
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 2.2.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -54,6 +54,9 @@ No, bulk deletions are permanent. Please be careful when using the bulk delete f
 
 == Changelog ==
 
+= 2.2.3 =
+* Added pricing type tab navigation to the Add Listing page.
+
 = 1.0.0 =
 * Initial release
 * Bulk delete listings
@@ -61,6 +64,9 @@ No, bulk deletions are permanent. Please be careful when using the bulk delete f
 * Listing type manager
 
 == Upgrade Notice ==
+
+= 2.2.3 =
+Pricing type tabs now open the configured Add Listing page with the selected directory type.
 
 = 1.0.0 =
 Initial release of Directorist Listing Tools.

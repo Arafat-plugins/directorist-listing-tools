@@ -130,6 +130,10 @@ class Directorist_Listing_Tools_Apply_Functions {
 				'label'       => __( 'Keyword search fix', 'directorist-listing-tools' ),
 				'description' => __( 'Improves Directorist keyword search for AJAX and archive results by matching title, key meta fields, and taxonomies only.', 'directorist-listing-tools' ),
 			),
+			'directorist_zip_prefix_search_fix' => array(
+				'label'       => __( 'ZIP prefix search fix', 'directorist-listing-tools' ),
+				'description' => __( 'When ZIP radius search is based on a short ZIP prefix like "70", match listings whose postal code starts with that prefix instead of matching the digits anywhere.', 'directorist-listing-tools' ),
+			),
 			'fix_builder_title_toggle_save' => array(
 				'label'       => __( 'Builder title toggle save fix', 'directorist-listing-tools' ),
 				'description' => __( 'Fixes listing header toggles not saving in directory builder.', 'directorist-listing-tools' ),
@@ -175,6 +179,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'conflict_wp_rocket_pagination'    => false,
 			'directorist_category_filter_fix'  => false,
 			'directorist_keyword_search_fix'   => true,
+			'directorist_zip_prefix_search_fix' => false,
 			'fix_builder_title_toggle_save'    => false,
 			'directorist_auto_approve_author'  => false,
 			'pricing_type_tabs_open_add_listing_page' => true,
@@ -294,6 +299,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		if ( ! empty( $opts['directorist_keyword_search_fix'] ) ) {
 			require_once $compat_dir . 'directorist-keyword-search-fix.php';
+		}
+		if ( ! empty( $opts['directorist_zip_prefix_search_fix'] ) ) {
+			require_once $compat_dir . 'directorist-zip-prefix-search-fix.php';
 		}
 		if ( ! empty( $opts['fix_builder_title_toggle_save'] ) ) {
 			require_once $compat_dir . 'fix-builder-title-toggle-save.php';

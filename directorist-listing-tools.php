@@ -3,7 +3,7 @@
  * Plugin Name: Directorist Listing Tools
  * Plugin URI: https://github.com/arafat-plugins/directorist-listing-tools
  * Description: Listing management tools for Directorist.
- * Version: 2.2.3
+ * Version: 2.2.4
  * Author: Arafat
  * Author URI: https://yourwebsite.com
  * License: GPL v2 or later

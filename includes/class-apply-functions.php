@@ -165,6 +165,20 @@ class Directorist_Listing_Tools_Apply_Functions {
 					)
 				),
 			),
+			'header_signin_modal_fallback' => array(
+				'label'       => __( 'Header Sign In modal fallback', 'directorist-listing-tools' ),
+				'description' => __( 'Opens the header Sign In popup when the theme has a Bootstrap modal API mismatch.', 'directorist-listing-tools' ),
+				'why'         => implode(
+					'',
+					array(
+						'<p><strong>' . esc_html__( 'Why this exists:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'The Road Ready RV header Sign In button points to #theme-login-modal, and the modal markup exists, but the click can fail because the site mixes Bootstrap modal systems.', 'directorist-listing-tools' ) . '</p>',
+						'<p>' . esc_html__( 'The header uses Bootstrap 5 attributes like data-bs-toggle and data-bs-target, while the theme JavaScript also contains older jQuery modal usage such as $("#theme-login-modal").modal("show"). On affected pages the browser can throw an error like window.bootstrap.Modal.getOrCreateInstance is not a function, so the popup never opens.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'What this fix does:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'It intercepts clicks for links/buttons targeting #theme-login-modal, stops the broken Bootstrap/theme click handler, and opens the existing modal manually with a backdrop, scroll lock, close button support, outside-click close, and Escape-key close.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'What it should not affect:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'It does not change login validation, registration, user permissions, Directorist account logic, or the modal content. It only fixes the frontend action that opens and closes the already-rendered login modal.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'Developer note:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'The original theme files involved are onelisting-pro/assets/js/main.js, onelisting-pro/assets/vendors/bootstrap/js/bootstrap.bundle.min.js, and onelisting-pro/directorist/custom/content-header-login-modal.php.', 'directorist-listing-tools' ) . '</p>',
+					)
+				),
+			),
 		);
 	}
 
@@ -204,6 +218,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'directorist_auto_approve_author'  => false,
 			'pricing_type_tabs_open_add_listing_page' => true,
 			'directorist_pricing_plans_dashboard_views_fix' => false,
+			'header_signin_modal_fallback'     => false,
 		);
 	}
 
@@ -375,6 +390,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		if ( ! empty( $opts['directorist_pricing_plans_dashboard_views_fix'] ) ) {
 			require_once $compat_dir . 'directorist-pricing-plans-dashboard-views-fix.php';
+		}
+		if ( ! empty( $opts['header_signin_modal_fallback'] ) ) {
+			require_once $compat_dir . 'header-signin-modal-fallback.php';
 		}
 	}
 

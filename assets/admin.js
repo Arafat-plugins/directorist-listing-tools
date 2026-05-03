@@ -1230,5 +1230,66 @@
 
 	} // end .dlt-plan-manager-wrap
 
+	$( document ).on( 'click', '.dlt-af-why-button', function(e) {
+		e.preventDefault();
+
+		var $button = $( this );
+		var $panel = $button.siblings( '.dlt-af-why-panel' );
+		var featureId = $button.data( 'feature-id' );
+		var expandText = $button.data( 'expand-text' ) || 'Why this..?';
+		var collapseText = $button.data( 'collapse-text' ) || 'Hide details';
+
+		if ( ! $panel.length || ! featureId ) {
+			return;
+		}
+
+		if ( $panel.data( 'loaded' ) && ! $panel.prop( 'hidden' ) ) {
+			$panel.prop( 'hidden', true ).removeClass( 'is-open' );
+			$button.text( expandText ).attr( 'aria-expanded', 'false' );
+			return;
+		}
+
+		if ( $panel.data( 'loaded' ) ) {
+			$panel.prop( 'hidden', false ).addClass( 'is-open' );
+			$button.text( collapseText ).attr( 'aria-expanded', 'true' );
+			return;
+		}
+
+		$button.prop( 'disabled', true ).addClass( 'is-loading' );
+		$panel
+			.prop( 'hidden', false )
+			.addClass( 'is-open is-loading' )
+			.html( '<p class="dlt-af-why-loading">Loading details...</p>' );
+
+		$.ajax( {
+			url: dltAdmin.ajaxUrl,
+			type: 'POST',
+			data: {
+				action: 'dlt_get_apply_function_why',
+				nonce: dltAdmin.nonce,
+				feature_id: featureId
+			}
+		} )
+			.done( function( response ) {
+				if ( response && response.success && response.data && response.data.html ) {
+					$panel.html( response.data.html ).data( 'loaded', true );
+					$button.text( collapseText ).attr( 'aria-expanded', 'true' );
+					return;
+				}
+
+				var message = response && response.data && response.data.message ? response.data.message : 'Could not load details.';
+				$panel.html( '<p class="dlt-af-why-error">' + message + '</p>' );
+				$button.text( expandText ).attr( 'aria-expanded', 'false' );
+			} )
+			.fail( function() {
+				$panel.html( '<p class="dlt-af-why-error">Could not load details.</p>' );
+				$button.text( expandText ).attr( 'aria-expanded', 'false' );
+			} )
+			.always( function() {
+				$button.prop( 'disabled', false ).removeClass( 'is-loading' );
+				$panel.removeClass( 'is-loading' );
+			} );
+	} );
+
 })(jQuery);
 

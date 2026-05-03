@@ -45,6 +45,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 	private function __construct() {
 		$this->define_features();
 		add_action( 'admin_post_dlt_save_apply_functions', array( $this, 'handle_form_save' ) );
+		add_action( 'wp_ajax_dlt_get_apply_function_why', array( $this, 'ajax_get_feature_why' ) );
 		// After this plugin (plugins_loaded 20): run early but not before callbacks registered on this hook finish.
 		add_action( 'plugins_loaded', array( $this, 'maybe_load_features' ), 25 );
 	}
@@ -150,6 +151,20 @@ class Directorist_Listing_Tools_Apply_Functions {
 				'label'       => __( 'Pricing type tabs open add listing page', 'directorist-listing-tools' ),
 				'description' => __( 'Makes pricing plan directory type tabs open the configured Add Listing page with the clicked directory type.', 'directorist-listing-tools' ),
 			),
+			'directorist_pricing_plans_dashboard_views_fix' => array(
+				'label'       => __( 'Pricing plans dashboard views fix', 'directorist-listing-tools' ),
+				'description' => __( 'Scopes heavy Directorist Pricing Plans dashboard modal and tabs to the real user dashboard so Elementor-edited pages do not become slow.', 'directorist-listing-tools' ),
+				'why'         => implode(
+					'',
+					array(
+						'<p><strong>' . esc_html__( 'Why this exists:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'Some Directorist Pricing Plans versions attach heavy ATPP_Views callbacks too broadly.', 'directorist-listing-tools' ) . '</p>',
+						'<p>' . esc_html__( 'The two problem callbacks are the footer plan-change modal and the dashboard tabs renderer. When they are active everywhere, Elementor preview/editor requests also load them, and the modal renderer performs expensive pricing-plan queries before anyone even clicks anything.', 'directorist-listing-tools' ) . '</p>',
+						'<p>' . esc_html__( 'That makes Elementor-edited pages become extremely slow or appear blank on weaker/live hosting.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'What this fix does:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'It removes those ATPP_Views callbacks from global page loads and adds them back only on the real Directorist user dashboard page. Elementor editor and preview requests are intentionally skipped.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'What it should not affect:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'Pricing plan purchase logic, plan restrictions, payments, subscriptions, and normal dashboard pricing-plan features should still work. The change is only about where the heavy dashboard/modal UI is allowed to render.', 'directorist-listing-tools' ) . '</p>',
+					)
+				),
+			),
 		);
 	}
 
@@ -188,6 +203,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'fix_builder_title_toggle_save'    => false,
 			'directorist_auto_approve_author'  => false,
 			'pricing_type_tabs_open_add_listing_page' => true,
+			'directorist_pricing_plans_dashboard_views_fix' => false,
 		);
 	}
 
@@ -233,6 +249,43 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		wp_safe_redirect( add_query_arg( 'dlt_apply_saved', '1', $redirect ) );
 		exit;
+	}
+
+	/**
+	 * Return the full "why this exists" note for one feature over AJAX.
+	 *
+	 * @return void
+	 */
+	public function ajax_get_feature_why() {
+		if ( ! dlt_current_user_can() ) {
+			wp_send_json_error(
+				array(
+					'message' => esc_html__( 'You do not have permission to view this note.', 'directorist-listing-tools' ),
+				),
+				403
+			);
+		}
+
+		check_ajax_referer( 'dlt_admin_nonce', 'nonce' );
+
+		$feature_id = isset( $_POST['feature_id'] ) ? sanitize_key( wp_unslash( $_POST['feature_id'] ) ) : '';
+		$feature    = isset( $this->features[ $feature_id ] ) ? $this->features[ $feature_id ] : array();
+		$why        = isset( $feature['why'] ) ? (string) $feature['why'] : '';
+
+		if ( '' === $why ) {
+			wp_send_json_error(
+				array(
+					'message' => esc_html__( 'No detailed note is available for this apply function yet.', 'directorist-listing-tools' ),
+				),
+				404
+			);
+		}
+
+		wp_send_json_success(
+			array(
+				'html' => wp_kses_post( $why ),
+			)
+		);
 	}
 
 	/**
@@ -320,6 +373,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		if ( ! empty( $opts['pricing_type_tabs_open_add_listing_page'] ) ) {
 			require_once $compat_dir . 'pricing-type-tabs-open-add-listing-page.php';
 		}
+		if ( ! empty( $opts['directorist_pricing_plans_dashboard_views_fix'] ) ) {
+			require_once $compat_dir . 'directorist-pricing-plans-dashboard-views-fix.php';
+		}
 	}
 
 	/**
@@ -380,6 +436,20 @@ class Directorist_Listing_Tools_Apply_Functions {
 									</label>
 								</div>
 								<p class="dlt-af-card__desc description"><?php echo esc_html( $meta['description'] ); ?></p>
+								<?php if ( ! empty( $meta['why'] ) ) : ?>
+									<div class="dlt-af-card__why-wrap">
+										<button
+											type="button"
+											class="button button-secondary dlt-af-why-button"
+											data-feature-id="<?php echo esc_attr( $id ); ?>"
+											data-expand-text="<?php echo esc_attr__( 'Why this..?', 'directorist-listing-tools' ); ?>"
+											data-collapse-text="<?php echo esc_attr__( 'Hide details', 'directorist-listing-tools' ); ?>"
+										>
+											<?php esc_html_e( 'Why this..?', 'directorist-listing-tools' ); ?>
+										</button>
+										<div class="dlt-af-why-panel" hidden></div>
+									</div>
+								<?php endif; ?>
 								<?php if ( $disabled_note ) : ?>
 									<p class="dlt-af-card__notice"><strong><?php echo esc_html( $disabled_note ); ?></strong></p>
 								<?php endif; ?>

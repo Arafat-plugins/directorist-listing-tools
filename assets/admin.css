@@ -203,6 +203,7 @@
    ============================================================ */
 #dlt-pending-form .tablenav,
 #dlt-bulk-delete-form .tablenav,
+#dlt-refresh-container .tablenav,
 #dlt-type-manager-container .tablenav,
 #dlt-location-manager-container .tablenav {
 	margin-bottom: 16px;
@@ -210,6 +211,7 @@
 
 #dlt-pending-form .bulkactions,
 #dlt-bulk-delete-form .bulkactions,
+#dlt-refresh-container .bulkactions,
 #dlt-type-manager-container .bulkactions,
 #dlt-location-manager-container .bulkactions {
 	display: flex;
@@ -224,6 +226,7 @@
 
 #dlt-pending-form table.wp-list-table,
 #dlt-bulk-delete-form table.wp-list-table,
+#dlt-refresh-container table.wp-list-table,
 #dlt-type-manager-container table.wp-list-table,
 #dlt-location-manager-container table.wp-list-table {
 	margin-top: 8px;
@@ -235,6 +238,7 @@
 
 #dlt-pending-form .listing-checkbox,
 #dlt-bulk-delete-form .listing-checkbox,
+#dlt-refresh-container .dlt-refresh-listing-checkbox,
 #dlt-type-manager-container .dlt-type-listing-checkbox,
 #dlt-location-manager-container .dlt-location-listing-checkbox {
 	margin: 0;
@@ -246,14 +250,35 @@
 }
 
 #cb-select-all,
+#dlt-refresh-cb-select-all,
 #dlt-type-cb-select-all,
 #dlt-location-cb-select-all {
 	margin: 0;
 }
 
+#dlt-refresh-ajax-message,
 #dlt-type-ajax-message,
 #dlt-location-ajax-message {
 	margin: 20px 0;
+}
+
+.dlt-refresh-summary {
+	background: var(--dlt-bg-white);
+	border: 1px solid var(--dlt-border);
+	border-radius: var(--dlt-radius);
+	box-shadow: var(--dlt-shadow-sm);
+	margin: 16px 0;
+	padding: 16px 20px;
+}
+
+.dlt-refresh-summary h2 {
+	font-size: 14px;
+	margin: 0 0 10px;
+}
+
+.dlt-refresh-summary ul {
+	list-style: disc;
+	margin: 0 0 0 18px;
 }
 
 /* ============================================================

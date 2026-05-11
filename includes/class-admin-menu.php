@@ -68,6 +68,16 @@ class Directorist_Listing_Tools_Admin_Menu {
 			array( $this, 'render_pending_manager_page' )
 		);
 
+		// Listing Refresh.
+		add_submenu_page(
+			$parent_slug,
+			esc_html__( 'Refresh Listings', 'directorist-listing-tools' ),
+			esc_html__( 'Refresh Listings', 'directorist-listing-tools' ),
+			'manage_options',
+			'directorist-listing-tools-refresh',
+			array( $this, 'render_listing_refresh_page' )
+		);
+
 		// Type Manager.
 		add_submenu_page(
 			$parent_slug,
@@ -153,6 +163,7 @@ class Directorist_Listing_Tools_Admin_Menu {
 		// appears; users can navigate between tools using the tab bar rendered on each page.
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-bulk-delete' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-pending' );
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-refresh' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-type-manager' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-location-manager' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-apply-functions' );
@@ -217,6 +228,20 @@ class Directorist_Listing_Tools_Admin_Menu {
 
 		$pending_manager = Directorist_Listing_Tools_Pending_Manager::get_instance();
 		$pending_manager->render_page();
+	}
+
+	/**
+	 * Render listing refresh page.
+	 */
+	public function render_listing_refresh_page() {
+		if ( ! dlt_current_user_can() ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
+		}
+
+		dlt_render_main_settings_tabs();
+
+		$listing_refresh = Directorist_Listing_Tools_Listing_Refresh::get_instance();
+		$listing_refresh->render_page();
 	}
 
 	/**

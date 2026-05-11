@@ -51,6 +51,7 @@ class Directorist_Listing_Tools_Loader {
 		require_once DLT_DIR . 'includes/compat/directorist-admin-menu-fix.php';
 		require_once DLT_DIR . 'includes/class-bulk-delete.php';
 		require_once DLT_DIR . 'includes/class-pending-manager.php';
+		require_once DLT_DIR . 'includes/class-listing-refresh.php';
 		require_once DLT_DIR . 'includes/class-type-manager.php';
 		require_once DLT_DIR . 'includes/class-location-manager.php';
 		require_once DLT_DIR . 'includes/class-display-settings.php';
@@ -67,6 +68,7 @@ class Directorist_Listing_Tools_Loader {
 		Directorist_Listing_Tools_Apply_Functions::get_instance();
 		Directorist_Listing_Tools_Bulk_Delete::get_instance();
 		Directorist_Listing_Tools_Pending_Manager::get_instance();
+		Directorist_Listing_Tools_Listing_Refresh::get_instance();
 		Directorist_Listing_Tools_Type_Manager::get_instance();
 		Directorist_Listing_Tools_Location_Manager::get_instance();
 		Directorist_Listing_Tools_Display_Settings::get_instance();

@@ -210,6 +210,10 @@ function dlt_render_main_settings_tabs() {
 			'label' => __( 'Pending', 'directorist-listing-tools' ),
 			'icon'  => 'dashicons-clock',
 		),
+		'directorist-listing-tools-refresh' => array(
+			'label' => __( 'Refresh', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-update',
+		),
 		'directorist-listing-tools-type-manager' => array(
 			'label' => __( 'Types', 'directorist-listing-tools' ),
 			'icon'  => 'dashicons-category',

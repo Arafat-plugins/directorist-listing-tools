@@ -427,6 +427,201 @@
 
 			return false;
 		});
+
+		// Listing Refresh: Select all checkboxes.
+		$(document).on('change', '#dlt-refresh-cb-select-all', function() {
+			$('.dlt-refresh-listing-checkbox').prop('checked', $(this).prop('checked'));
+		});
+
+		// Listing Refresh: Update select all checkbox state.
+		$(document).on('change', '.dlt-refresh-listing-checkbox', function() {
+			var total = $('.dlt-refresh-listing-checkbox').length;
+			var checked = $('.dlt-refresh-listing-checkbox:checked').length;
+			$('#dlt-refresh-cb-select-all').prop('checked', total > 0 && total === checked);
+		});
+
+		function dltRefreshSetBusy(isBusy) {
+			$('.dlt-refresh-selected-btn, .dlt-refresh-by-count-btn, .dlt-refresh-all-btn').prop('disabled', isBusy);
+			$('#dlt-refresh-count').prop('disabled', isBusy);
+		}
+
+		function dltRefreshShowMessage(html) {
+			$('#dlt-refresh-ajax-message').html(html).show();
+			$('html, body').animate({ scrollTop: 0 }, 300);
+		}
+
+		function dltRefreshApplySuccess(data) {
+			var refreshedAt = data.refreshed_at || 'Done';
+
+			if (data.listing_ids && data.listing_ids.length) {
+				data.listing_ids.forEach(function(listingId) {
+					var $row = $('#dlt-refresh-container tr[data-listing-id="' + listingId + '"]');
+					$row.find('.column-refresh-status').text(refreshedAt);
+					$row.find('.dlt-refresh-listing-checkbox').prop('checked', false);
+				});
+			}
+
+			$('#dlt-refresh-cb-select-all').prop('checked', false);
+
+			if (typeof data.pending_count !== 'undefined') {
+				$('.dlt-refresh-pending-count').text(data.pending_count);
+			}
+		}
+
+		// Listing Refresh: selected rows.
+		$(document).on('click', '.dlt-refresh-selected-btn', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+
+			var listingIds = [];
+			$('.dlt-refresh-listing-checkbox:checked').each(function() {
+				listingIds.push($(this).val());
+			});
+
+			if (!listingIds.length) {
+				alert('Please select at least one listing.');
+				return false;
+			}
+
+			if (!confirm('Refresh ' + listingIds.length + ' selected listing(s)?')) {
+				return false;
+			}
+
+			dltRefreshSetBusy(true);
+			dltRefreshShowMessage('<div class="notice notice-info"><p>Refreshing selected listing(s), please wait...</p></div>');
+
+			$.ajax({
+				url: dltAdmin.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: 'dlt_ajax_refresh_selected',
+					nonce: dltAdmin.nonce,
+					listing_ids: JSON.stringify(listingIds)
+				},
+				success: function(response) {
+					if (response.success) {
+						dltRefreshShowMessage(response.data.message);
+						dltRefreshApplySuccess(response.data);
+					} else {
+						dltRefreshShowMessage('<div class="notice notice-error"><p>' + (response.data.message || 'An error occurred.') + '</p></div>');
+					}
+					dltRefreshSetBusy(false);
+				},
+				error: function() {
+					dltRefreshShowMessage('<div class="notice notice-error"><p>Server error. Please try a smaller batch.</p></div>');
+					dltRefreshSetBusy(false);
+				}
+			});
+
+			return false;
+		});
+
+		// Listing Refresh: next unrefreshed listings by count.
+		$(document).on('click', '.dlt-refresh-by-count-btn', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+
+			var count = parseInt($('#dlt-refresh-count').val(), 10);
+
+			if (!count || count <= 0) {
+				alert('Please enter a valid number.');
+				$('#dlt-refresh-count').focus();
+				return false;
+			}
+
+			if (!confirm('Refresh the next ' + count + ' unrefreshed listing(s)?')) {
+				return false;
+			}
+
+			dltRefreshSetBusy(true);
+			dltRefreshShowMessage('<div class="notice notice-info"><p>Refreshing next ' + count + ' listing(s), please wait...</p></div>');
+
+			$.ajax({
+				url: dltAdmin.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: 'dlt_ajax_refresh_by_count',
+					nonce: dltAdmin.nonce,
+					refresh_count: count
+				},
+				success: function(response) {
+					if (response.success) {
+						dltRefreshShowMessage(response.data.message);
+						dltRefreshApplySuccess(response.data);
+					} else {
+						dltRefreshShowMessage('<div class="notice notice-error"><p>' + (response.data.message || 'An error occurred.') + '</p></div>');
+					}
+					dltRefreshSetBusy(false);
+				},
+				error: function() {
+					dltRefreshShowMessage('<div class="notice notice-error"><p>Server error. Please try a smaller number.</p></div>');
+					dltRefreshSetBusy(false);
+				}
+			});
+
+			return false;
+		});
+
+		// Listing Refresh: all remaining in small AJAX batches to avoid 503 timeouts.
+		$(document).on('click', '.dlt-refresh-all-btn', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+
+			var batchSize = parseInt($('#dlt-refresh-count').val(), 10) || 25;
+			batchSize = Math.max(1, Math.min(100, batchSize));
+
+			if (!confirm('Refresh all remaining listings in batches of ' + batchSize + '?')) {
+				return false;
+			}
+
+			var totalSuccess = 0;
+			var totalFailed = 0;
+
+			dltRefreshSetBusy(true);
+			dltRefreshShowMessage('<div class="notice notice-info"><p>Refreshing remaining listings. Please keep this page open...</p></div>');
+
+			function runBatch() {
+				$.ajax({
+					url: dltAdmin.ajaxUrl,
+					type: 'POST',
+					data: {
+						action: 'dlt_ajax_refresh_batch',
+						nonce: dltAdmin.nonce,
+						batch_size: batchSize
+					},
+					success: function(response) {
+						if (!response.success) {
+							dltRefreshShowMessage('<div class="notice notice-error"><p>' + (response.data.message || 'An error occurred.') + '</p></div>');
+							dltRefreshSetBusy(false);
+							return;
+						}
+
+						totalSuccess += parseInt(response.data.success_count || 0, 10);
+						totalFailed += parseInt(response.data.failed_count || 0, 10);
+						dltRefreshApplySuccess(response.data);
+
+						dltRefreshShowMessage(
+							'<div class="notice notice-info"><p>Processed ' + totalSuccess + ' listing(s). Failed: ' + totalFailed + '. Remaining: ' + response.data.pending_count + '.</p></div>'
+						);
+
+						if (response.data.done) {
+							dltRefreshShowMessage('<div class="notice notice-success"><p>Refresh complete. Processed ' + totalSuccess + ' listing(s). Failed: ' + totalFailed + '.</p></div>');
+							dltRefreshSetBusy(false);
+							return;
+						}
+
+						runBatch();
+					},
+					error: function() {
+						dltRefreshShowMessage('<div class="notice notice-error"><p>Server error during batch refresh. Try again with a smaller batch size.</p></div>');
+						dltRefreshSetBusy(false);
+					}
+				});
+			}
+
+			runBatch();
+			return false;
+		});
 	});
 
 	/* ================================================================

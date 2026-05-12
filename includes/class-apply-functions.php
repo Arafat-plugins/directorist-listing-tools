@@ -179,6 +179,10 @@ class Directorist_Listing_Tools_Apply_Functions {
 					)
 				),
 			),
+			'directorist_ads_search_result_after_filter_ajax_fix' => array(
+				'label'       => __( 'Search result after-filter ad AJAX fix', 'directorist-listing-tools' ),
+				'description' => __( 'Keeps Directorist Ads Manager after-filter ads visible after instant search refreshes the Search Result page.', 'directorist-listing-tools' ),
+			),
 		);
 	}
 
@@ -219,6 +223,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'pricing_type_tabs_open_add_listing_page' => true,
 			'directorist_pricing_plans_dashboard_views_fix' => false,
 			'header_signin_modal_fallback'     => false,
+			'directorist_ads_search_result_after_filter_ajax_fix' => true,
 		);
 	}
 
@@ -393,6 +398,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		if ( ! empty( $opts['header_signin_modal_fallback'] ) ) {
 			require_once $compat_dir . 'header-signin-modal-fallback.php';
+		}
+		if ( ! empty( $opts['directorist_ads_search_result_after_filter_ajax_fix'] ) ) {
+			require_once $compat_dir . 'directorist-ads-search-result-after-filter-ajax-fix.php';
 		}
 	}
 

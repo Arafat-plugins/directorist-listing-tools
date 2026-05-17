@@ -183,7 +183,104 @@ class Directorist_Listing_Tools_Apply_Functions {
 				'label'       => __( 'Search result after-filter ad AJAX fix', 'directorist-listing-tools' ),
 				'description' => __( 'Keeps Directorist Ads Manager after-filter ads visible after instant search refreshes the Search Result page.', 'directorist-listing-tools' ),
 			),
+			'directorist_preview_image_no_crop' => array(
+				'label'       => __( 'Directorist preview image no-crop', 'directorist-listing-tools' ),
+				'description' => __( 'Prevents Directorist preview thumbnails from hard-cropping wide logos while keeping lightweight generated preview images.', 'directorist-listing-tools' ),
+				'why'         => implode(
+					'',
+					array(
+						'<p><strong>' . esc_html__( 'Why this exists:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'Directorist registers its default preview image size as 640x360 with hard crop enabled. Wide logo images can be permanently cropped when WordPress generates the directorist_preview thumbnail, so changing object-fit or container height later cannot recover the missing left/right parts.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'What this fix does:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'It keeps the same 640x360 preview size target but disables hard crop for Directorist preview thumbnails. New or regenerated previews keep the full logo proportion instead of cutting the image.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'Why not use full image quality:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'Loading full-size uploads on archive cards makes listing pages heavier. This fix keeps the optimized preview image path, which is better for site speed.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'Important:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'Existing cropped thumbnails must be regenerated after enabling this. Purge cache after regeneration.', 'directorist-listing-tools' ) . '</p>',
+					)
+				),
+			),
 		);
+	}
+
+	/**
+	 * Apply Functions sub-tabs.
+	 *
+	 * @return array
+	 */
+	private function get_feature_tabs() {
+		return array(
+			'general'  => array(
+				'label'       => __( 'General', 'directorist-listing-tools' ),
+				'description' => __( 'Admin, data, builder, taxonomy, and back-office compatibility fixes.', 'directorist-listing-tools' ),
+			),
+			'frontend' => array(
+				'label'       => __( 'Frontend', 'directorist-listing-tools' ),
+				'description' => __( 'Public page, archive/search, dashboard, login, checkout, and cache-safe frontend fixes.', 'directorist-listing-tools' ),
+			),
+		);
+	}
+
+	/**
+	 * Frontend-facing apply function IDs.
+	 *
+	 * @return string[]
+	 */
+	private function get_frontend_feature_ids() {
+		return array(
+			'wc_plan_checkout_bridge',
+			'wc_checkout_endpoint_conflict_fix',
+			'dlist_listing_bg_lazyfix',
+			'fix_directorist_google_signin',
+			'directorist_directory_type_guard',
+			'directorist_wordfence_fix',
+			'directorist_css_variables_fix',
+			'enqueue_line_awesome',
+			'conflict_wp_rocket_pagination',
+			'directorist_category_filter_fix',
+			'directorist_all_categories_page_fix',
+			'directorist_keyword_search_fix',
+			'directorist_zip_prefix_search_fix',
+			'directorist_auto_approve_author',
+			'pricing_type_tabs_open_add_listing_page',
+			'directorist_pricing_plans_dashboard_views_fix',
+			'header_signin_modal_fallback',
+			'directorist_ads_search_result_after_filter_ajax_fix',
+			'directorist_preview_image_no_crop',
+		);
+	}
+
+	/**
+	 * @param string $feature_id Feature ID.
+	 * @return string
+	 */
+	private function get_feature_tab( $feature_id ) {
+		return in_array( $feature_id, $this->get_frontend_feature_ids(), true ) ? 'frontend' : 'general';
+	}
+
+	/**
+	 * @param array $features Feature definitions.
+	 * @return array
+	 */
+	private function group_features_by_tab( $features ) {
+		$tabs    = $this->get_feature_tabs();
+		$grouped = array_fill_keys( array_keys( $tabs ), array() );
+
+		foreach ( $features as $id => $meta ) {
+			$tab = $this->get_feature_tab( $id );
+			if ( ! isset( $grouped[ $tab ] ) ) {
+				$tab = 'general';
+			}
+			$grouped[ $tab ][ $id ] = $meta;
+		}
+
+		return $grouped;
+	}
+
+	/**
+	 * @return string
+	 */
+	private function get_current_tab() {
+		$tabs = $this->get_feature_tabs();
+		$tab  = isset( $_GET['dlt_af_tab'] ) ? sanitize_key( wp_unslash( $_GET['dlt_af_tab'] ) ) : 'general'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		return isset( $tabs[ $tab ] ) ? $tab : 'general';
 	}
 
 	/**
@@ -224,6 +321,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'directorist_pricing_plans_dashboard_views_fix' => false,
 			'header_signin_modal_fallback'     => false,
 			'directorist_ads_search_result_after_filter_ajax_fix' => true,
+			'directorist_preview_image_no_crop' => true,
 		);
 	}
 
@@ -402,6 +500,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		if ( ! empty( $opts['directorist_ads_search_result_after_filter_ajax_fix'] ) ) {
 			require_once $compat_dir . 'directorist-ads-search-result-after-filter-ajax-fix.php';
 		}
+		if ( ! empty( $opts['directorist_preview_image_no_crop'] ) ) {
+			require_once $compat_dir . 'directorist-preview-image-no-crop.php';
+		}
 	}
 
 	/**
@@ -418,10 +519,17 @@ class Directorist_Listing_Tools_Apply_Functions {
 			echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Apply functions settings saved.', 'directorist-listing-tools' ) . '</p></div>';
 		}
 
-		$opts     = self::get_options();
-		$features = $this->get_features();
-		$form_act   = admin_url( 'admin-post.php' );
-		$return_url = admin_url( 'edit.php?post_type=' . dlt_get_post_type() . '&page=directorist-listing-tools-apply-functions' );
+		$opts            = self::get_options();
+		$features        = $this->get_features();
+		$tabs            = $this->get_feature_tabs();
+		$current_tab     = $this->get_current_tab();
+		$features_by_tab = $this->group_features_by_tab( $features );
+		$form_act        = admin_url( 'admin-post.php' );
+		$return_url      = add_query_arg(
+			'dlt_af_tab',
+			$current_tab,
+			admin_url( 'edit.php?post_type=' . dlt_get_post_type() . '&page=directorist-listing-tools-apply-functions' )
+		);
 		?>
 		<div class="wrap dlt-apply-functions-wrap">
 			<h2 class="screen-reader-text"><?php esc_html_e( 'Apply Functions', 'directorist-listing-tools' ); ?></h2>
@@ -431,8 +539,40 @@ class Directorist_Listing_Tools_Apply_Functions {
 				<input type="hidden" name="_wp_http_referer" value="<?php echo esc_attr( $return_url ); ?>" />
 				<?php wp_nonce_field( 'dlt_save_apply_functions' ); ?>
 
+				<nav class="dlt-af-tab-nav nav-tab-wrapper" aria-label="<?php esc_attr_e( 'Apply function groups', 'directorist-listing-tools' ); ?>">
+					<?php foreach ( $tabs as $tab_id => $tab_meta ) : ?>
+						<?php
+						$tab_url = add_query_arg(
+							'dlt_af_tab',
+							$tab_id,
+							admin_url( 'edit.php?post_type=' . dlt_get_post_type() . '&page=directorist-listing-tools-apply-functions' )
+						);
+						$count   = isset( $features_by_tab[ $tab_id ] ) ? count( $features_by_tab[ $tab_id ] ) : 0;
+						?>
+						<a
+							href="<?php echo esc_url( $tab_url ); ?>"
+							class="nav-tab <?php echo $current_tab === $tab_id ? 'nav-tab-active' : ''; ?>"
+							aria-current="<?php echo $current_tab === $tab_id ? 'page' : 'false'; ?>"
+						>
+							<?php echo esc_html( $tab_meta['label'] ); ?>
+							<span class="dlt-af-tab-count"><?php echo esc_html( (string) $count ); ?></span>
+						</a>
+					<?php endforeach; ?>
+				</nav>
+
+				<?php foreach ( $tabs as $tab_id => $tab_meta ) : ?>
+					<section
+						class="dlt-af-tab-panel"
+						id="dlt-af-tab-<?php echo esc_attr( $tab_id ); ?>"
+						<?php echo $current_tab === $tab_id ? '' : ' hidden'; ?>
+					>
+						<div class="dlt-af-tab-intro">
+							<h3><?php echo esc_html( $tab_meta['label'] ); ?></h3>
+							<p class="description"><?php echo esc_html( $tab_meta['description'] ); ?></p>
+						</div>
+
 				<ul class="dlt-af-feature-list">
-					<?php foreach ( $features as $id => $meta ) : ?>
+					<?php foreach ( $features_by_tab[ $tab_id ] as $id => $meta ) : ?>
 						<?php
 						$disabled_note = '';
 						if ( ! empty( $meta['requires_wc'] ) && ! class_exists( 'WooCommerce' ) ) {
@@ -483,6 +623,8 @@ class Directorist_Listing_Tools_Apply_Functions {
 						</li>
 					<?php endforeach; ?>
 				</ul>
+					</section>
+				<?php endforeach; ?>
 
 				<?php submit_button( __( 'Save apply functions', 'directorist-listing-tools' ), 'primary large', 'submit', true ); ?>
 			</form>

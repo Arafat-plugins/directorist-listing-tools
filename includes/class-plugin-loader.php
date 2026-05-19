@@ -59,6 +59,7 @@ class Directorist_Listing_Tools_Loader {
 		require_once DLT_DIR . 'includes/class-admin-menu.php';
 		require_once DLT_DIR . 'includes/class-file-manager.php';
 		require_once DLT_DIR . 'includes/class-form-inspector.php';
+		require_once DLT_DIR . 'includes/class-builder-preset-restore.php';
 		require_once DLT_DIR . 'includes/class-apply-functions.php';
 		if ( dlt_is_social_login_active() ) {
 			require_once DLT_DIR . 'includes/class-social-login-diagnostics.php';
@@ -76,6 +77,7 @@ class Directorist_Listing_Tools_Loader {
 		Directorist_Listing_Tools_Admin_Menu::get_instance();
 		Directorist_Listing_Tools_File_Manager::get_instance();
 		Directorist_Listing_Tools_Form_Inspector::get_instance();
+		Directorist_Listing_Tools_Builder_Preset_Restore::get_instance();
 		if ( dlt_is_social_login_active() ) {
 			Directorist_Listing_Tools_Social_Login_Diagnostics::get_instance();
 		}

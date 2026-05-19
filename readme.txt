@@ -4,7 +4,7 @@ Tags: directorist, listings, bulk, management, admin
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.2.3
+Stable tag: 2.2.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,6 +19,7 @@ Directorist Listing Tools provides powerful bulk management features for Directo
 * **Bulk Delete Listings**: Delete multiple listings at once by entering comma-separated listing IDs
 * **Pending Listings Manager**: View and manage all pending listings with bulk publish or delete actions
 * **Listing Type Manager**: Set or change listing types for multiple listings simultaneously
+* **Builder Preset Reload**: Restore known missing Directorist preset fields without touching published listings
 
 == Installation ==
 

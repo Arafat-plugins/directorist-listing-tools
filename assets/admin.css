@@ -199,6 +199,61 @@
 }
 
 /* ============================================================
+   Builder Preset Reload
+   ============================================================ */
+.dlt-builder-preset-page {
+	max-width: 1080px;
+}
+
+.dlt-builder-preset-panel,
+.dlt-builder-preset-log,
+.dlt-builder-preset-docs-panel {
+	background: #fff;
+	border: 1px solid var(--dlt-border);
+	border-radius: var(--dlt-radius);
+	box-shadow: var(--dlt-shadow-sm);
+	margin: 16px 0;
+	padding: 16px;
+}
+
+.dlt-builder-preset-panel h3,
+.dlt-builder-preset-log h3,
+.dlt-builder-preset-docs-content h3 {
+	margin-top: 0;
+}
+
+.dlt-builder-preset-actions {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 12px;
+}
+
+.dlt-builder-preset-log table {
+	margin-top: 10px;
+}
+
+.dlt-status-ok {
+	color: var(--dlt-success);
+	font-weight: 600;
+}
+
+.dlt-status-warning {
+	color: var(--dlt-warning);
+	font-weight: 600;
+}
+
+.dlt-builder-preset-docs {
+	margin-top: 18px;
+}
+
+.dlt-builder-preset-docs-content ul {
+	list-style: disc;
+	margin-left: 20px;
+}
+
+/* ============================================================
    Table Areas — Pending, Bulk Delete, Type/Location Managers
    ============================================================ */
 #dlt-pending-form .tablenav,

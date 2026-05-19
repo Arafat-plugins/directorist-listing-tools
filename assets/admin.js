@@ -20,6 +20,89 @@
 			$('#cb-select-all').prop('checked', total === checked);
 		});
 
+		// Builder Preset Reload: one-click repair, then stop.
+		$(document).on('click', '#dlt-builder-preset-run', function(e) {
+			e.preventDefault();
+
+			var $button = $(this);
+			var originalLabel = $button.text();
+			var runningLabel = $button.data('running-label') || 'Reloading...';
+			var completeLabel = $button.data('complete-label') || 'Completed';
+
+			$button.prop('disabled', true).text(runningLabel);
+			$('#dlt-builder-preset-message').html('<div class="notice notice-info"><p>Reloading builder presets...</p></div>');
+
+			$.ajax({
+				url: dltAdmin.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: 'dlt_ajax_builder_preset_reload',
+					nonce: dltAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						$('#dlt-builder-preset-message').html(response.data.message || '');
+						$('#dlt-builder-preset-result').html(response.data.html || '');
+						$button.text(completeLabel);
+					} else {
+						$('#dlt-builder-preset-message').html('<div class="notice notice-error"><p>' + (response.data.message || 'Builder preset reload failed.') + '</p></div>');
+						$button.prop('disabled', false).text(originalLabel);
+					}
+				},
+				error: function() {
+					$('#dlt-builder-preset-message').html('<div class="notice notice-error"><p>Builder preset reload failed. Please try again.</p></div>');
+					$button.prop('disabled', false).text(originalLabel);
+				}
+			});
+		});
+
+		// Load Builder Preset docs only when requested.
+		$(document).on('click', '#dlt-builder-preset-docs-toggle', function(e) {
+			e.preventDefault();
+
+			var $button = $(this);
+			var $panel = $('#dlt-builder-preset-docs-panel');
+
+			if ($panel.is(':visible')) {
+				$panel.prop('hidden', true).hide();
+				$button.text('Show docs');
+				return;
+			}
+
+			if ($button.data('loaded')) {
+				$panel.prop('hidden', false).show();
+				$button.text('Hide docs');
+				return;
+			}
+
+			$button.prop('disabled', true).text('Loading docs...');
+
+			$.ajax({
+				url: dltAdmin.ajaxUrl,
+				type: 'POST',
+				data: {
+					action: 'dlt_ajax_builder_preset_docs',
+					nonce: dltAdmin.nonce
+				},
+				success: function(response) {
+					if (response.success) {
+						$panel.html(response.data.html || '').prop('hidden', false).show();
+						$button.data('loaded', 1).text('Hide docs');
+					} else {
+						$panel.html('<div class="notice notice-error"><p>' + (response.data.message || 'Could not load docs.') + '</p></div>').prop('hidden', false).show();
+						$button.text('Show docs');
+					}
+				},
+				error: function() {
+					$panel.html('<div class="notice notice-error"><p>Could not load docs.</p></div>').prop('hidden', false).show();
+					$button.text('Show docs');
+				},
+				complete: function() {
+					$button.prop('disabled', false);
+				}
+			});
+		});
+
 		// Confirm before bulk delete.
 		$('#dlt-pending-form').on('submit', function(e) {
 			var action = $('#bulk-action-selector').val();

@@ -165,6 +165,20 @@ class Directorist_Listing_Tools_Apply_Functions {
 					)
 				),
 			),
+			'directorist_pricing_plans_tag_field_key_fix' => array(
+				'label'       => __( 'Pricing plans Tags save fix', 'directorist-listing-tools' ),
+				'description' => __( 'Normalizes malformed Directorist Tags field keys so Pricing Plans can save and display the Tags allowance correctly.', 'directorist-listing-tools' ),
+				'why'         => implode(
+					'',
+					array(
+						'<p><strong>' . esc_html__( 'Why this exists:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'Some directory builder data stores the Tags preset field key as tax_input[at_biz_dir-tags] instead of tax_input[at_biz_dir-tags][]. Directorist Pricing Plans only maps the bracketed key to the plan meta key tag.', 'directorist-listing-tools' ) . '</p>',
+						'<p>' . esc_html__( 'When the malformed key is present, enabling Tags and hiding it on the pricing plan can appear to do nothing after Update because the plan form submits the wrong field name, so _tag and _hide_tag are not saved/read consistently.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'What this fix does:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'It normalizes the Tags field key at runtime when submission_form_fields term meta is read. Existing Pricing Plans code can then save form_fields[tag] and form_fields[hide_tag] normally.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'What it should not affect:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'It does not edit listings, pricing plan posts, payments, orders, or taxonomy terms. It only normalizes the malformed Tags field definition while Directorist reads builder data.', 'directorist-listing-tools' ) . '</p>',
+						'<p><strong>' . esc_html__( 'Developer note:', 'directorist-listing-tools' ) . '</strong> ' . esc_html__( 'This is separate from the Pricing plans dashboard views fix. That feature scopes heavy dashboard/modal rendering for speed; this feature fixes the Tags field key used by Pricing Plans when saving plan allowances.', 'directorist-listing-tools' ) . '</p>',
+					)
+				),
+			),
 			'header_signin_modal_fallback' => array(
 				'label'       => __( 'Header Sign In modal fallback', 'directorist-listing-tools' ),
 				'description' => __( 'Opens the header Sign In popup when the theme has a Bootstrap modal API mismatch.', 'directorist-listing-tools' ),
@@ -240,6 +254,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'directorist_auto_approve_author',
 			'pricing_type_tabs_open_add_listing_page',
 			'directorist_pricing_plans_dashboard_views_fix',
+			'directorist_pricing_plans_tag_field_key_fix',
 			'header_signin_modal_fallback',
 			'directorist_ads_search_result_after_filter_ajax_fix',
 			'directorist_preview_image_no_crop',
@@ -319,6 +334,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'directorist_auto_approve_author'  => false,
 			'pricing_type_tabs_open_add_listing_page' => true,
 			'directorist_pricing_plans_dashboard_views_fix' => false,
+			'directorist_pricing_plans_tag_field_key_fix' => true,
 			'header_signin_modal_fallback'     => false,
 			'directorist_ads_search_result_after_filter_ajax_fix' => true,
 			'directorist_preview_image_no_crop' => true,
@@ -493,6 +509,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		if ( ! empty( $opts['directorist_pricing_plans_dashboard_views_fix'] ) ) {
 			require_once $compat_dir . 'directorist-pricing-plans-dashboard-views-fix.php';
+		}
+		if ( ! empty( $opts['directorist_pricing_plans_tag_field_key_fix'] ) ) {
+			require_once $compat_dir . 'directorist-pricing-plans-tag-field-key-fix.php';
 		}
 		if ( ! empty( $opts['header_signin_modal_fallback'] ) ) {
 			require_once $compat_dir . 'header-signin-modal-fallback.php';

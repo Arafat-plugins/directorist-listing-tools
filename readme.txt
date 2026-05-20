@@ -4,7 +4,7 @@ Tags: directorist, listings, bulk, management, admin
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.2.6
+Stable tag: 2.2.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,6 +20,7 @@ Directorist Listing Tools provides powerful bulk management features for Directo
 * **Pending Listings Manager**: View and manage all pending listings with bulk publish or delete actions
 * **Listing Type Manager**: Set or change listing types for multiple listings simultaneously
 * **Builder Preset Reload**: Restore known missing Directorist preset fields without touching published listings
+* **Pricing Plans Tags Save Fix**: Normalizes malformed Directorist Tags field keys so plan settings save correctly
 
 == Installation ==
 
@@ -55,6 +56,9 @@ No, bulk deletions are permanent. Please be careful when using the bulk delete f
 
 == Changelog ==
 
+= 2.2.7 =
+* Added Pricing Plans Tags save compatibility fix.
+
 = 2.2.3 =
 * Added pricing type tab navigation to the Add Listing page.
 
@@ -65,6 +69,9 @@ No, bulk deletions are permanent. Please be careful when using the bulk delete f
 * Listing type manager
 
 == Upgrade Notice ==
+
+= 2.2.7 =
+Pricing Plans Tags settings now save correctly when a directory stores the Tags field key without brackets.
 
 = 2.2.3 =
 Pricing type tabs now open the configured Add Listing page with the selected directory type.

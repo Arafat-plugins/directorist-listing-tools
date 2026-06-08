@@ -109,6 +109,10 @@ class Directorist_Listing_Tools_Apply_Functions {
 				'label'       => __( 'Load Line Awesome icons', 'directorist-listing-tools' ),
 				'description' => __( 'Enqueues Line Awesome CSS on the frontend.', 'directorist-listing-tools' ),
 			),
+			'enqueue_font_awesome'              => array(
+				'label'       => __( 'Load Font Awesome icons', 'directorist-listing-tools' ),
+				'description' => __( 'Enqueues Font Awesome CSS on the frontend.', 'directorist-listing-tools' ),
+			),
 			'fix_directorist_bh_add_time_slot' => array(
 				'label'       => __( 'Business hours Select2 fix', 'directorist-listing-tools' ),
 				'description' => __( 'Fixes Select2 conflict with WooCommerce on listing edit.', 'directorist-listing-tools' ),
@@ -246,6 +250,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'directorist_wordfence_fix',
 			'directorist_css_variables_fix',
 			'enqueue_line_awesome',
+			'enqueue_font_awesome',
 			'conflict_wp_rocket_pagination',
 			'directorist_category_filter_fix',
 			'directorist_all_categories_page_fix',
@@ -323,6 +328,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'directorist_css_variables_fix'      => false,
 			'directorist_listing_expiration_fix' => false,
 			'enqueue_line_awesome'              => false,
+			'enqueue_font_awesome'              => false,
 			'fix_directorist_bh_add_time_slot'  => false,
 			'hide_elementor_loading_state'      => false,
 			'conflict_wp_rocket_pagination'    => false,
@@ -476,6 +482,9 @@ class Directorist_Listing_Tools_Apply_Functions {
 		}
 		if ( ! empty( $opts['enqueue_line_awesome'] ) ) {
 			require_once $compat_dir . 'enqueue-line-awesome.php';
+		}
+		if ( ! empty( $opts['enqueue_font_awesome'] ) ) {
+			require_once $compat_dir . 'enqueue-font-awesome.php';
 		}
 		if ( ! empty( $opts['fix_directorist_bh_add_time_slot'] ) && class_exists( 'WooCommerce' ) ) {
 			require_once $compat_dir . 'fix-directorist-bh-add-time-slot.php';

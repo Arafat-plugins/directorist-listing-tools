@@ -104,6 +104,40 @@
 		$('.dlt-fm-loading').removeClass('is-error').empty();
 	}
 
+	function showUploadProgress(index, total, fileName, percent) {
+		loaderState.active = false;
+		stopLoaderTimers();
+		$('.dlt-fm-list').hide();
+		$('.dlt-fm-empty').hide();
+		var pct = Math.max(0, Math.min(100, Math.round(percent || 0)));
+		$('.dlt-fm-loading')
+			.removeClass('is-error')
+			.show()
+			.html(
+				'<div class="dlt-fm-loading-ui dlt-fm-upload-progress" role="status" aria-live="polite">' +
+					'<div class="dlt-fm-upload-progress-text">Uploading ' + escapeHtml(fileName) + ' (' + index + ' of ' + total + ')</div>' +
+					'<div class="dlt-fm-progress-track"><div class="dlt-fm-progress-fill" style="width:' + pct + '%"></div></div>' +
+					'<div class="dlt-fm-upload-progress-pct">' + pct + '%</div>' +
+				'</div>'
+			);
+	}
+
+	function showPreparingUpload() {
+		loaderState.active = false;
+		stopLoaderTimers();
+		$('.dlt-fm-list').hide();
+		$('.dlt-fm-empty').hide();
+		$('.dlt-fm-loading')
+			.removeClass('is-error')
+			.show()
+			.html(
+				'<div class="dlt-fm-loading-ui" role="status" aria-live="polite">' +
+					'<span class="dlt-fm-loading-spinner" aria-hidden="true"></span>' +
+					'<div class="dlt-fm-loading-status">Preparing files…</div>' +
+				'</div>'
+			);
+	}
+
 	function showLoaderError(message) {
 		loaderState.active = false;
 		stopLoaderTimers();
@@ -555,9 +589,10 @@
 	function uploadQueue(queue) {
 		if (!queue || !queue.length || !getConfig()) return;
 		var index = 0;
+		var total = queue.length;
 
 		function uploadNext() {
-			if (index >= queue.length) {
+			if (index >= total) {
 				loadList();
 				$('#dlt-fm-upload-input').val('');
 				$('#dlt-fm-upload-folder-input').val('');
@@ -573,12 +608,25 @@
 				fd.append('rel_path', item.relPath);
 			}
 
+			showUploadProgress(index + 1, total, item.file.name, 0);
+
 			$.ajax({
 				url: config.ajaxUrl,
 				type: 'POST',
 				data: fd,
 				processData: false,
 				contentType: false,
+				xhr: function() {
+					var xhr = $.ajaxSettings.xhr();
+					if (xhr.upload) {
+						xhr.upload.addEventListener('progress', function(e) {
+							if (e.lengthComputable) {
+								showUploadProgress(index + 1, total, item.file.name, (e.loaded / e.total) * 100);
+							}
+						});
+					}
+					return xhr;
+				},
 				success: function(res) {
 					if (!(res && res.success)) {
 						alert((res && res.data && res.data.message ? res.data.message : 'Upload failed for: ') + item.file.name);
@@ -942,8 +990,11 @@
 			var dt = e.originalEvent ? e.originalEvent.dataTransfer : null;
 			if (!dt) return;
 
+			showPreparingUpload();
+
 			buildQueueFromDataTransfer(dt).then(function(queue) {
 				if (!queue.length) {
+					showLoading(false);
 					alert('No files found in dropped items.');
 					return;
 				}

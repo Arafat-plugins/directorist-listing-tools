@@ -1266,16 +1266,49 @@ class Directorist_Listing_Tools_File_Manager {
 	}
 
 	/**
+	 * Format a byte count as a human-readable string.
+	 *
+	 * @param int $bytes Byte count.
+	 * @return string
+	 */
+	private function format_bytes( $bytes ) {
+		if ( $bytes < 1024 ) {
+			return $bytes . ' B';
+		}
+		if ( $bytes < 1024 * 1024 ) {
+			return number_format_i18n( $bytes / 1024, 1 ) . ' KB';
+		}
+		return number_format_i18n( $bytes / ( 1024 * 1024 ), 1 ) . ' MB';
+	}
+
+	/**
+	 * Get current debug-related wp-config constants for display.
+	 *
+	 * @return array<string,null|string>
+	 */
+	private function get_debug_constants_status() {
+		return array(
+			'WP_DEBUG'         => defined( 'WP_DEBUG' ) ? ( WP_DEBUG ? 'true' : 'false' ) : null,
+			'WP_DEBUG_LOG'     => defined( 'WP_DEBUG_LOG' ) ? ( WP_DEBUG_LOG ? 'true' : 'false' ) : null,
+			'WP_DEBUG_DISPLAY' => defined( 'WP_DEBUG_DISPLAY' ) ? ( WP_DEBUG_DISPLAY ? 'true' : 'false' ) : null,
+		);
+	}
+
+	/**
 	 * Render the File Manager admin page.
 	 */
 	public function render_page() {
-		$root             = $this->get_root_path();
-		$nonce            = wp_create_nonce( self::NONCE_ACTION );
-		$root_locations   = $this->get_root_locations();
-		$current_root_key = $this->get_current_root_key();
-		$config_path      = $this->get_wp_config_path();
-		$debug_log        = trailingslashit( WP_CONTENT_DIR ) . 'debug.log';
-		$custom_root      = (string) get_option( self::OPTION_CUSTOM_ROOT, '' );
+		$root               = $this->get_root_path();
+		$nonce              = wp_create_nonce( self::NONCE_ACTION );
+		$root_locations     = $this->get_root_locations();
+		$current_root_key   = $this->get_current_root_key();
+		$config_path        = $this->get_wp_config_path();
+		$debug_log          = trailingslashit( WP_CONTENT_DIR ) . 'debug.log';
+		$debug_log_exists   = is_file( $debug_log );
+		$debug_log_size     = $debug_log_exists ? $this->format_bytes( filesize( $debug_log ) ) : '';
+		$debug_constants    = $this->get_debug_constants_status();
+		$display_errors_ini = ini_get( 'display_errors' );
+		$custom_root        = (string) get_option( self::OPTION_CUSTOM_ROOT, '' );
 		?>
 		<div class="wrap dlt-file-manager-wrap">
 			<h2><?php esc_html_e( 'File Managing', 'directorist-listing-tools' ); ?></h2>
@@ -1315,9 +1348,32 @@ class Directorist_Listing_Tools_File_Manager {
 					<p>
 						<?php esc_html_e( 'Use logging mode on live sites. Display mode is only for short reproduction windows.', 'directorist-listing-tools' ); ?>
 					</p>
-					<ul>
+					<ul class="dlt-fm-debug-paths">
 						<li><strong><?php esc_html_e( 'wp-config.php:', 'directorist-listing-tools' ); ?></strong> <code><?php echo esc_html( $config_path ); ?></code></li>
-						<li><strong><?php esc_html_e( 'debug.log:', 'directorist-listing-tools' ); ?></strong> <code><?php echo esc_html( $debug_log ); ?></code></li>
+						<li>
+							<strong><?php esc_html_e( 'debug.log:', 'directorist-listing-tools' ); ?></strong> <code><?php echo esc_html( $debug_log ); ?></code>
+							<?php if ( $debug_log_exists ) : ?>
+								<span class="dlt-fm-badge dlt-fm-badge--neutral"><?php echo esc_html( $debug_log_size ); ?></span>
+							<?php else : ?>
+								<span class="dlt-fm-badge dlt-fm-badge--muted"><?php esc_html_e( 'Not present', 'directorist-listing-tools' ); ?></span>
+							<?php endif; ?>
+						</li>
+					</ul>
+					<ul class="dlt-fm-debug-constants">
+						<?php foreach ( $debug_constants as $const_name => $const_value ) : ?>
+							<li>
+								<strong><?php echo esc_html( $const_name ); ?>:</strong>
+								<?php if ( null === $const_value ) : ?>
+									<span class="dlt-fm-badge dlt-fm-badge--muted"><?php esc_html_e( 'Not defined', 'directorist-listing-tools' ); ?></span>
+								<?php else : ?>
+									<span class="dlt-fm-badge <?php echo 'true' === $const_value ? 'dlt-fm-badge--on' : 'dlt-fm-badge--off'; ?>"><?php echo esc_html( $const_value ); ?></span>
+								<?php endif; ?>
+							</li>
+						<?php endforeach; ?>
+						<li>
+							<strong><?php esc_html_e( 'display_errors (ini):', 'directorist-listing-tools' ); ?></strong>
+							<span class="dlt-fm-badge <?php echo $display_errors_ini ? 'dlt-fm-badge--on' : 'dlt-fm-badge--off'; ?>"><?php echo esc_html( $display_errors_ini ? $display_errors_ini : '0' ); ?></span>
+						</li>
 					</ul>
 					<div class="dlt-fm-maintenance-actions">
 						<button type="button" class="button dlt-fm-clear-debug-log"><?php esc_html_e( 'Delete debug.log', 'directorist-listing-tools' ); ?></button>
@@ -1343,6 +1399,14 @@ class Directorist_Listing_Tools_File_Manager {
 			</div>
 			<p class="description dlt-fm-drop-hint"><?php esc_html_e( 'Tip: Drag and drop files or folders directly into the file list area.', 'directorist-listing-tools' ); ?></p>
 			<div class="dlt-fm-list-wrap">
+				<div class="dlt-fm-list-header" aria-hidden="true">
+					<span class="dlt-fm-list-header-icon"></span>
+					<span class="dlt-fm-list-header-name"><?php esc_html_e( 'Name', 'directorist-listing-tools' ); ?></span>
+					<span class="dlt-fm-list-header-size"><?php esc_html_e( 'Size', 'directorist-listing-tools' ); ?></span>
+					<span class="dlt-fm-list-header-mtime"><?php esc_html_e( 'Modified', 'directorist-listing-tools' ); ?></span>
+					<span class="dlt-fm-list-header-permissions"><?php esc_html_e( 'Permissions', 'directorist-listing-tools' ); ?></span>
+					<span class="dlt-fm-list-header-actions"><?php esc_html_e( 'Actions', 'directorist-listing-tools' ); ?></span>
+				</div>
 				<div class="dlt-fm-loading" style="display:none;"><?php esc_html_e( 'Loading…', 'directorist-listing-tools' ); ?></div>
 				<div class="dlt-fm-list" role="list"></div>
 				<div class="dlt-fm-empty" style="display:none;"><?php esc_html_e( 'This folder is empty.', 'directorist-listing-tools' ); ?></div>

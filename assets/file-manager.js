@@ -130,6 +130,31 @@
 		$('.dlt-fm-breadcrumb').html(html);
 	}
 
+	function renderCurrentWriteStatus(data) {
+		var perms = data.current_permissions ? ' (' + escapeHtml(data.current_permissions) + ')' : '';
+		var html = '';
+
+		if (data.current_writable) {
+			html = '<span class="dlt-fm-write-badge dlt-fm-write-badge--ok">Writable' + perms + '</span>';
+		} else {
+			html = '<span class="dlt-fm-write-badge dlt-fm-write-badge--bad">Read-only' + perms + '</span> ' +
+				'<button type="button" class="button button-small dlt-fm-fix-permissions" data-path="' + escapeAttr(data.path || '') + '" data-name="current folder">Fix current folder write</button>';
+		}
+
+		$('.dlt-fm-write-status').html(html);
+	}
+
+	function renderPermissionTools(item) {
+		var perms = item.permissions ? ' ' + escapeHtml(item.permissions) : '';
+
+		if (item.writable) {
+			return '<span class="dlt-fm-write-badge dlt-fm-write-badge--ok" title="Writable">Writable' + perms + '</span>';
+		}
+
+		return '<span class="dlt-fm-write-badge dlt-fm-write-badge--bad" title="Not writable">Read-only' + perms + '</span> ' +
+			'<button type="button" class="button button-small dlt-fm-fix-permissions" data-path="' + escapeAttr(item.path) + '" data-name="' + escapeAttr(item.name) + '">Fix write</button>';
+	}
+
 	function escapeAttr(s) {
 		if (s == null) return '';
 		return String(s)
@@ -176,6 +201,7 @@
 				showLoading(false);
 				if (res.success && res.data) {
 					renderBreadcrumb(res.data.path, res.data.root_label);
+					renderCurrentWriteStatus(res.data);
 					var items = res.data.items || [];
 					if (items.length === 0) {
 						$('.dlt-fm-empty').show();
@@ -192,6 +218,7 @@
 									'<a href="#" class="dlt-fm-name dlt-fm-nav">' + nameHtml + '</a>' +
 									'<span class="dlt-fm-size">—</span>' +
 									'<span class="dlt-fm-mtime">' + escapeHtml(formatDate(it.mtime)) + '</span>' +
+									'<span class="dlt-fm-permissions">' + renderPermissionTools(it) + '</span>' +
 									'<span class="dlt-fm-actions">' +
 									'<button type="button" class="button button-small dlt-fm-rename" data-path="' + pathAttr + '" data-name="' + escapeAttr(it.name) + '" data-dir="1" title="Rename folder">Rename</button> ' +
 									'<button type="button" class="button button-small dlt-fm-delete" data-path="' + pathAttr + '" data-name="' + escapeAttr(it.name) + '" data-dir="1" title="Delete folder">Delete</button>' +
@@ -203,6 +230,7 @@
 									'<span class="dlt-fm-name">' + nameHtml + '</span>' +
 									'<span class="dlt-fm-size">' + escapeHtml(formatSize(it.size)) + '</span>' +
 									'<span class="dlt-fm-mtime">' + escapeHtml(formatDate(it.mtime)) + '</span>' +
+									'<span class="dlt-fm-permissions">' + renderPermissionTools(it) + '</span>' +
 									'<span class="dlt-fm-actions">' +
 									'<a href="' + escapeAttr(downloadUrl) + '" class="button button-small dlt-fm-download" download>Download</a> ' +
 									'<button type="button" class="button button-small dlt-fm-edit" data-path="' + pathAttr + '" data-name="' + escapeAttr(it.name) + '" title="Edit file">Edit</button> ' +
@@ -421,6 +449,33 @@
 
 	function setParentRoot() {
 		runFileManagerAction('dlt_fm_set_parent_root', {}, 'File manager root moved up.', true);
+	}
+
+	function fixPermissions(path) {
+		if (!getConfig()) return;
+		showLoading(true);
+		$.ajax({
+			url: config.ajaxUrl,
+			type: 'POST',
+			data: {
+				action: 'dlt_fm_fix_permissions',
+				nonce: config.nonce,
+				path: path || ''
+			},
+			success: function(res) {
+				showLoading(false);
+				if (res && res.success) {
+					alert(res.data && res.data.message ? res.data.message : 'Write permission fixed.');
+					loadList();
+					return;
+				}
+				alert(res && res.data && res.data.message ? res.data.message : 'Could not fix write permission.');
+			},
+			error: function() {
+				showLoading(false);
+				alert('Could not fix write permission.');
+			}
+		});
 	}
 
 	function clearDebugLog() {
@@ -678,6 +733,20 @@
 			var path = $(this).data('path');
 			var name = $(this).data('name');
 			showEditorModal(path, name);
+		});
+
+		$(document).on('click', '.dlt-fm-fix-permissions', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var path = $(this).data('path') || '';
+			var name = $(this).data('name') || 'selected item';
+			showModal(
+				'Fix write permission',
+				'<p>This tries to make "' + escapeHtml(name) + '" writable by WordPress/PHP using standard file or folder permissions.</p><p>If the server ownership blocks PHP from changing permissions, hosting/FTP/SSH access is still required.</p>',
+				function() {
+					fixPermissions(path);
+				}
+			);
 		});
 
 		// Modal confirm

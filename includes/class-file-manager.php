@@ -28,6 +28,7 @@ class Directorist_Listing_Tools_File_Manager {
 	const AJAX_ACTION_RENAME  = 'dlt_fm_rename';
 	const AJAX_ACTION_GET_FILE = 'dlt_fm_get_file';
 	const AJAX_ACTION_SAVE_FILE = 'dlt_fm_save_file';
+	const AJAX_ACTION_FIX_PERMISSIONS = 'dlt_fm_fix_permissions';
 	const AJAX_ACTION_SET_ROOT = 'dlt_fm_set_root';
 	const AJAX_ACTION_SET_PARENT_ROOT = 'dlt_fm_set_parent_root';
 	const AJAX_ACTION_CLEAR_DEBUG_LOG = 'dlt_fm_clear_debug_log';
@@ -65,6 +66,7 @@ class Directorist_Listing_Tools_File_Manager {
 		add_action( 'wp_ajax_' . self::AJAX_ACTION_RENAME, array( $this, 'ajax_rename' ) );
 		add_action( 'wp_ajax_' . self::AJAX_ACTION_GET_FILE, array( $this, 'ajax_get_file' ) );
 		add_action( 'wp_ajax_' . self::AJAX_ACTION_SAVE_FILE, array( $this, 'ajax_save_file' ) );
+		add_action( 'wp_ajax_' . self::AJAX_ACTION_FIX_PERMISSIONS, array( $this, 'ajax_fix_permissions' ) );
 		add_action( 'wp_ajax_' . self::AJAX_ACTION_SET_ROOT, array( $this, 'ajax_set_root' ) );
 		add_action( 'wp_ajax_' . self::AJAX_ACTION_SET_PARENT_ROOT, array( $this, 'ajax_set_parent_root' ) );
 		add_action( 'wp_ajax_' . self::AJAX_ACTION_CLEAR_DEBUG_LOG, array( $this, 'ajax_clear_debug_log' ) );
@@ -411,6 +413,67 @@ class Directorist_Listing_Tools_File_Manager {
 	}
 
 	/**
+	 * Get Unix-style file permissions where available.
+	 *
+	 * @param string $abs_path Absolute file path.
+	 * @return string
+	 */
+	private function get_permissions_label( $abs_path ) {
+		$perms = @fileperms( $abs_path );
+
+		if ( false === $perms ) {
+			return '';
+		}
+
+		return substr( sprintf( '%o', $perms ), -4 );
+	}
+
+	/**
+	 * Send a clear JSON error for a non-writable path.
+	 *
+	 * @param string $path Absolute path.
+	 * @param string $action_label Action label.
+	 * @return void
+	 */
+	private function send_not_writable_error( $path, $action_label ) {
+		wp_send_json_error(
+			array(
+				'message' => sprintf(
+					/* translators: 1: action label, 2: path. */
+					__( 'Cannot %1$s because this path is not writable by WordPress/PHP: %2$s. Try "Fix write" first; if it still fails, the host must change ownership or permissions.', 'directorist-listing-tools' ),
+					$action_label,
+					$path
+				),
+			)
+		);
+	}
+
+	/**
+	 * Try to make a path writable for WordPress/PHP.
+	 *
+	 * @param string $path Absolute path.
+	 * @return bool
+	 */
+	private function make_path_writable( $path ) {
+		if ( is_writable( $path ) ) {
+			return true;
+		}
+
+		$modes = is_dir( $path ) ? array( 0755, 0775 ) : array( 0644, 0664 );
+
+		foreach ( $modes as $mode ) {
+			@chmod( $path, $mode );
+			clearstatcache( true, $path );
+
+			if ( is_writable( $path ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * AJAX: List directory contents.
 	 */
 	public function ajax_list() {
@@ -447,11 +510,14 @@ class Directorist_Listing_Tools_File_Manager {
 			$rel = ltrim( str_replace( $root, '', $resolved ), "/\\" );
 			$rel = str_replace( DIRECTORY_SEPARATOR, '/', $rel );
 			$items[] = array(
-				'name'   => $name,
-				'path'   => $rel,
-				'is_dir' => $is_dir,
-				'size'   => $is_dir ? null : filesize( $full ),
-				'mtime'  => filemtime( $full ),
+				'name'        => $name,
+				'path'        => $rel,
+				'is_dir'      => $is_dir,
+				'size'        => $is_dir ? null : filesize( $full ),
+				'mtime'       => filemtime( $full ),
+				'readable'    => is_readable( $full ),
+				'writable'    => is_writable( $full ),
+				'permissions' => $this->get_permissions_label( $full ),
 			);
 		}
 		usort( $items, function ( $a, $b ) {
@@ -461,9 +527,11 @@ class Directorist_Listing_Tools_File_Manager {
 			return strcasecmp( $a['name'], $b['name'] );
 		} );
 		wp_send_json_success( array(
-			'path'  => $subpath,
-			'items' => $items,
-			'root_label' => basename( $root ),
+			'path'                => $subpath,
+			'items'               => $items,
+			'root_label'          => basename( $root ),
+			'current_writable'    => is_writable( $dir ),
+			'current_permissions' => $this->get_permissions_label( $dir ),
 		) );
 	}
 
@@ -483,6 +551,10 @@ class Directorist_Listing_Tools_File_Manager {
 			wp_send_json_error( array( 'message' => __( 'Invalid path.', 'directorist-listing-tools' ) ) );
 		}
 		$target = $result['absolute'];
+		$target_parent = dirname( $target );
+		if ( ! is_writable( $target_parent ) ) {
+			$this->send_not_writable_error( $target_parent, __( 'create folder', 'directorist-listing-tools' ) );
+		}
 		if ( file_exists( $target ) ) {
 			wp_send_json_error( array( 'message' => __( 'A file or folder with that name already exists.', 'directorist-listing-tools' ) ) );
 		}
@@ -506,6 +578,9 @@ class Directorist_Listing_Tools_File_Manager {
 		$parent = $this->resolve_path( $subpath );
 		if ( ! $parent['valid'] || ! is_dir( $parent['absolute'] ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid parent directory.', 'directorist-listing-tools' ) ) );
+		}
+		if ( ! is_writable( $parent['absolute'] ) ) {
+			$this->send_not_writable_error( $parent['absolute'], __( 'create file', 'directorist-listing-tools' ) );
 		}
 		$target = path_join( $parent['absolute'], $name );
 		$under_root = $this->resolve_path( $subpath . '/' . $name );
@@ -531,6 +606,9 @@ class Directorist_Listing_Tools_File_Manager {
 		$parent = $this->resolve_path( $subpath );
 		if ( ! $parent['valid'] || ! is_dir( $parent['absolute'] ) ) {
 			wp_send_json_error( array( 'message' => __( 'Invalid upload directory.', 'directorist-listing-tools' ) ) );
+		}
+		if ( ! is_writable( $parent['absolute'] ) ) {
+			$this->send_not_writable_error( $parent['absolute'], __( 'upload files', 'directorist-listing-tools' ) );
 		}
 		if ( empty( $_FILES['file'] ) || ! is_uploaded_file( $_FILES['file']['tmp_name'] ) ) {
 			wp_send_json_error( array( 'message' => __( 'No file uploaded.', 'directorist-listing-tools' ) ) );
@@ -570,6 +648,9 @@ class Directorist_Listing_Tools_File_Manager {
 		if ( ! is_dir( $target_dir ) && ! wp_mkdir_p( $target_dir ) ) {
 			wp_send_json_error( array( 'message' => __( 'Could not create destination directory.', 'directorist-listing-tools' ) ) );
 		}
+		if ( ! is_writable( $target_dir ) ) {
+			$this->send_not_writable_error( $target_dir, __( 'upload files', 'directorist-listing-tools' ) );
+		}
 
 		if ( ! move_uploaded_file( $_FILES['file']['tmp_name'], $target ) ) {
 			wp_send_json_error( array( 'message' => __( 'Could not save uploaded file.', 'directorist-listing-tools' ) ) );
@@ -598,6 +679,9 @@ class Directorist_Listing_Tools_File_Manager {
 		}
 		if ( ! file_exists( $target ) ) {
 			wp_send_json_error( array( 'message' => __( 'File or folder not found.', 'directorist-listing-tools' ) ) );
+		}
+		if ( ! is_writable( dirname( $target ) ) ) {
+			$this->send_not_writable_error( dirname( $target ), __( 'delete this item', 'directorist-listing-tools' ) );
 		}
 		if ( is_dir( $target ) ) {
 			$this->delete_recursive( $target );
@@ -703,6 +787,9 @@ class Directorist_Listing_Tools_File_Manager {
 		if ( file_exists( $new_abs ) ) {
 			wp_send_json_error( array( 'message' => __( 'A file or folder with that name already exists.', 'directorist-listing-tools' ) ) );
 		}
+		if ( ! is_writable( $parent_abs ) ) {
+			$this->send_not_writable_error( $parent_abs, __( 'rename this item', 'directorist-listing-tools' ) );
+		}
 
 		if ( ! @rename( $old_abs, $new_abs ) ) {
 			wp_send_json_error( array( 'message' => __( 'Could not rename.', 'directorist-listing-tools' ) ) );
@@ -779,12 +866,57 @@ class Directorist_Listing_Tools_File_Manager {
 		if ( strlen( $content ) > 2 * 1024 * 1024 ) {
 			wp_send_json_error( array( 'message' => __( 'Content too large (max 2MB).', 'directorist-listing-tools' ) ) );
 		}
+		if ( ! is_writable( $abs ) ) {
+			$this->send_not_writable_error( $abs, __( 'save this file', 'directorist-listing-tools' ) );
+		}
 
 		if ( @file_put_contents( $abs, $content ) === false ) {
 			wp_send_json_error( array( 'message' => __( 'Could not save file.', 'directorist-listing-tools' ) ) );
 		}
 
 		wp_send_json_success( array( 'message' => __( 'Saved.', 'directorist-listing-tools' ) ) );
+	}
+
+	/**
+	 * AJAX: Try to make a file or folder writable.
+	 */
+	public function ajax_fix_permissions() {
+		$this->check_ajax_auth();
+		$this->check_modify_permission();
+
+		$subpath = isset( $_REQUEST['path'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['path'] ) ) : '';
+		$result  = $this->resolve_path( $subpath );
+
+		if ( ! $result['valid'] || ! file_exists( $result['absolute'] ) ) {
+			wp_send_json_error( array( 'message' => __( 'File or folder not found.', 'directorist-listing-tools' ) ) );
+		}
+
+		$target = $result['absolute'];
+		if ( $this->make_path_writable( $target ) ) {
+			wp_send_json_success(
+				array(
+					'message'     => sprintf(
+						/* translators: %s: path. */
+						__( 'Write permission fixed for %s.', 'directorist-listing-tools' ),
+						$target
+					),
+					'writable'    => is_writable( $target ),
+					'permissions' => $this->get_permissions_label( $target ),
+				)
+			);
+		}
+
+		wp_send_json_error(
+			array(
+				'message'     => sprintf(
+					/* translators: %s: path. */
+					__( 'Could not make this path writable: %s. The server likely blocks PHP from changing ownership or permissions, so hosting/FTP/SSH access is required.', 'directorist-listing-tools' ),
+					$target
+				),
+				'writable'    => is_writable( $target ),
+				'permissions' => $this->get_permissions_label( $target ),
+			)
+		);
 	}
 
 	/**
@@ -1197,6 +1329,7 @@ class Directorist_Listing_Tools_File_Manager {
 			</div>
 			<div class="dlt-fm-toolbar">
 				<div class="dlt-fm-breadcrumb" aria-label="<?php esc_attr_e( 'Current folder', 'directorist-listing-tools' ); ?>"></div>
+				<div class="dlt-fm-write-status" aria-live="polite"></div>
 				<div class="dlt-fm-actions">
 					<button type="button" class="button button-secondary dlt-fm-btn dlt-fm-new-folder"><span class="dashicons dashicons-plus-alt"></span> <?php esc_html_e( 'New folder', 'directorist-listing-tools' ); ?></button>
 					<button type="button" class="button button-secondary dlt-fm-btn dlt-fm-new-file"><span class="dashicons dashicons-media-default"></span> <?php esc_html_e( 'New file', 'directorist-listing-tools' ); ?></button>

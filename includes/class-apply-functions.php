@@ -317,7 +317,7 @@ class Directorist_Listing_Tools_Apply_Functions {
 		return array(
 			'directory_taxonomy_sync'           => false,
 			'wc_plan_checkout_bridge'          => false,
-			'wc_checkout_endpoint_conflict_fix' => true,
+			'wc_checkout_endpoint_conflict_fix' => false,
 			'directorist_classic_editor'        => false,
 			'dlist_listing_bg_lazyfix'          => false,
 			'fix_directorist_google_signin'     => false,
@@ -334,16 +334,16 @@ class Directorist_Listing_Tools_Apply_Functions {
 			'conflict_wp_rocket_pagination'    => false,
 			'directorist_category_filter_fix'  => false,
 			'directorist_all_categories_page_fix' => false,
-			'directorist_keyword_search_fix'   => true,
+			'directorist_keyword_search_fix'   => false,
 			'directorist_zip_prefix_search_fix' => false,
 			'fix_builder_title_toggle_save'    => false,
 			'directorist_auto_approve_author'  => false,
-			'pricing_type_tabs_open_add_listing_page' => true,
+			'pricing_type_tabs_open_add_listing_page' => false,
 			'directorist_pricing_plans_dashboard_views_fix' => false,
-			'directorist_pricing_plans_tag_field_key_fix' => true,
+			'directorist_pricing_plans_tag_field_key_fix' => false,
 			'header_signin_modal_fallback'     => false,
-			'directorist_ads_search_result_after_filter_ajax_fix' => true,
-			'directorist_preview_image_no_crop' => true,
+			'directorist_ads_search_result_after_filter_ajax_fix' => false,
+			'directorist_preview_image_no_crop' => false,
 		);
 	}
 

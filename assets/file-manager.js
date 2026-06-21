@@ -386,6 +386,103 @@
 		});
 	}
 
+	function runFileManagerAction(action, data, fallbackMessage, reloadOnSuccess) {
+		if (!getConfig()) return;
+		data = $.extend({ action: action, nonce: config.nonce }, data || {});
+		showLoading(true);
+		$.ajax({
+			url: config.ajaxUrl,
+			type: 'POST',
+			data: data,
+			success: function(res) {
+				showLoading(false);
+				if (res && res.success) {
+					alert(res.data && res.data.message ? res.data.message : fallbackMessage);
+					if (reloadOnSuccess) {
+						window.location.reload();
+					}
+					return;
+				}
+				alert(res && res.data && res.data.message ? res.data.message : 'Request failed.');
+			},
+			error: function() {
+				showLoading(false);
+				alert('Request failed. Please try again.');
+			}
+		});
+	}
+
+	function setFileManagerRoot() {
+		var root = $('#dlt-fm-root-select').val();
+		var customPath = $('#dlt-fm-custom-root').val() || '';
+		if (!root) return;
+		runFileManagerAction('dlt_fm_set_root', { root: root, custom_path: customPath }, 'File manager root switched.', true);
+	}
+
+	function setParentRoot() {
+		runFileManagerAction('dlt_fm_set_parent_root', {}, 'File manager root moved up.', true);
+	}
+
+	function clearDebugLog() {
+		runFileManagerAction('dlt_fm_clear_debug_log', {}, 'debug.log deleted.', false);
+	}
+
+	function setWpDebugMode(mode) {
+		runFileManagerAction('dlt_fm_set_wp_debug', { mode: mode }, 'wp-config.php updated.', false);
+	}
+
+	function renderStorageRows(rows) {
+		if (!rows || !rows.length) {
+			return '<p>No files found in this scan.</p>';
+		}
+
+		var html = '<table class="widefat striped dlt-fm-storage-table"><thead><tr><th>Path</th><th>Size</th></tr></thead><tbody>';
+		rows.forEach(function(row) {
+			html += '<tr><td><code>' + escapeHtml(row.path) + '</code></td><td>' + escapeHtml(formatSize(row.size || 0)) + '</td></tr>';
+		});
+		html += '</tbody></table>';
+		return html;
+	}
+
+	function showStorageScan(data) {
+		var warning = data.truncated ? '<p><strong>Note:</strong> Scan stopped after ' + escapeHtml(data.scanned) + ' files. Open a smaller folder and scan again for more detail.</p>' : '';
+		var body =
+			'<p><strong>Total scanned size:</strong> ' + escapeHtml(formatSize(data.total || 0)) + ' across ' + escapeHtml(data.scanned || 0) + ' files. Skipped folders/files: ' + escapeHtml(data.skipped || 0) + '.</p>' +
+			warning +
+			'<h4>Largest folders in current scan</h4>' +
+			renderStorageRows(data.folders || []) +
+			'<h4>Largest files</h4>' +
+			renderStorageRows(data.files || []);
+
+		showModal('Storage scan', body, null);
+	}
+
+	function scanStorage() {
+		if (!getConfig()) return;
+		showLoading(true);
+		$.ajax({
+			url: config.ajaxUrl,
+			type: 'POST',
+			data: {
+				action: 'dlt_fm_scan_storage',
+				nonce: config.nonce,
+				path: currentPath
+			},
+			success: function(res) {
+				showLoading(false);
+				if (res && res.success && res.data) {
+					showStorageScan(res.data);
+					return;
+				}
+				alert(res && res.data && res.data.message ? res.data.message : 'Storage scan failed.');
+			},
+			error: function() {
+				showLoading(false);
+				alert('Storage scan failed. Try a smaller folder.');
+			}
+		});
+	}
+
 	function showPromptModal(title, label, placeholder, onConfirm) {
 		var inputId = 'dlt-fm-prompt-input-' + Date.now();
 		var body = '<label for="' + inputId + '">' + escapeHtml(label) + '</label><input type="text" id="' + inputId + '" class="dlt-fm-prompt-input regular-text" placeholder="' + escapeAttr(placeholder || '') + '">';
@@ -601,6 +698,64 @@
 
 		$(document).on('click', '.dlt-fm-modal-cancel', function() {
 			hideModal();
+		});
+
+		$('.dlt-fm-set-root').on('click', function() {
+			setFileManagerRoot();
+		});
+
+		$('.dlt-fm-parent-root').on('click', function() {
+			showModal(
+				'Set parent as root',
+				'<p>This moves the file manager root one folder up if WordPress can read that parent directory.</p>',
+				setParentRoot
+			);
+		});
+
+		$('.dlt-fm-scan-storage').on('click', function() {
+			showModal(
+				'Scan current folder size',
+				'<p>This scans the current folder on demand and lists the largest folders and files. Large sites may take a few seconds.</p>',
+				scanStorage
+			);
+		});
+
+		$('.dlt-fm-clear-debug-log').on('click', function() {
+			showModal(
+				'Delete debug.log',
+				'<p>This deletes the current wp-content/debug.log file. WordPress can create a fresh file when debug logging is enabled again.</p>',
+				clearDebugLog
+			);
+		});
+
+		$('.dlt-fm-debug-log-on').on('click', function() {
+			showModal(
+				'Enable debug log',
+				'<p>This updates wp-config.php to enable WP_DEBUG and WP_DEBUG_LOG while keeping errors hidden from visitors.</p><p>A timestamped wp-config.php backup is created first.</p>',
+				function() {
+					setWpDebugMode('log');
+				}
+			);
+		});
+
+		$('.dlt-fm-debug-display-on').on('click', function() {
+			showModal(
+				'Enable temporary display',
+				'<p>This can display PHP errors on the live site. Use only for a short reproduction window, then click Disable debug.</p><p>A timestamped wp-config.php backup is created first.</p>',
+				function() {
+					setWpDebugMode('display');
+				}
+			);
+		});
+
+		$('.dlt-fm-debug-off').on('click', function() {
+			showModal(
+				'Disable debug',
+				'<p>This updates wp-config.php to disable WP_DEBUG, WP_DEBUG_LOG, WP_DEBUG_DISPLAY, and display_errors.</p><p>A timestamped wp-config.php backup is created first.</p>',
+				function() {
+					setWpDebugMode('off');
+				}
+			);
 		});
 
 		// New folder

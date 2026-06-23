@@ -148,6 +148,16 @@ class Directorist_Listing_Tools_Admin_Menu {
 			array( $this, 'render_form_inspector_page' )
 		);
 
+		// Add Listing Form repairs.
+		add_submenu_page(
+			$parent_slug,
+			esc_html__( 'Form Repairs', 'directorist-listing-tools' ),
+			esc_html__( 'Form Repairs', 'directorist-listing-tools' ),
+			'manage_options',
+			'directorist-listing-tools-form-repairs',
+			array( $this, 'render_form_repairs_page' )
+		);
+
 		// Builder Preset Reload.
 		add_submenu_page(
 			$parent_slug,
@@ -200,6 +210,7 @@ class Directorist_Listing_Tools_Admin_Menu {
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-plan-manager' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-file-manager' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-form-inspector' );
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-form-repairs' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-builder-presets' );
 		if ( dlt_is_social_login_active() ) {
 			remove_submenu_page( $parent_slug, 'directorist-listing-tools-social-login' );
@@ -330,6 +341,19 @@ class Directorist_Listing_Tools_Admin_Menu {
 		dlt_render_main_settings_tabs();
 
 		Directorist_Listing_Tools_Form_Inspector::get_instance()->render_page();
+	}
+
+	/**
+	 * Render add listing form repairs page.
+	 */
+	public function render_form_repairs_page() {
+		if ( ! dlt_current_user_can() ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
+		}
+
+		dlt_render_main_settings_tabs();
+
+		Directorist_Listing_Tools_Submission_Form_Repairs::get_instance()->render_page();
 	}
 
 	/**

@@ -4,7 +4,7 @@ Tags: directorist, listings, bulk, management, admin
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.2.15
+Stable tag: 2.2.17
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -19,6 +19,7 @@ Directorist Listing Tools provides powerful bulk management features for Directo
 * **Bulk Delete Listings**: Delete multiple listings at once by entering comma-separated listing IDs
 * **Pending Listings Manager**: View and manage all pending listings with bulk publish or delete actions
 * **Listing Type Manager**: Set or change listing types for multiple listings simultaneously
+* **Form Repairs**: Fix hidden Directorist add-listing form required validation flags without touching listings
 * **Builder Preset Reload**: Restore known missing Directorist preset fields without touching published listings
 * **Pricing Plans Tags Save Fix**: Normalizes malformed Directorist Tags field keys so plan settings save correctly
 
@@ -56,6 +57,12 @@ No, bulk deletions are permanent. Please be careful when using the bulk delete f
 
 == Changelog ==
 
+= 2.2.17 =
+* Extended Form Repairs with an optional mode for all required fields that are stored but not placed in the Add Listing Form.
+
+= 2.2.16 =
+* Added an admin-only Form Repairs tool to turn off hidden Listing Type required validation in Directorist directory builder data.
+
 = 2.2.15 =
 * Added File Manager trash/restore handling so accidental deletes can be recovered.
 * Added an optional admin-controlled fatal error log for diagnosing front-end crashes.
@@ -73,6 +80,12 @@ No, bulk deletions are permanent. Please be careful when using the bulk delete f
 * Listing type manager
 
 == Upgrade Notice ==
+
+= 2.2.17 =
+Form Repairs can now fix hidden required validation for Listing Type only or for all unplaced required fields.
+
+= 2.2.16 =
+Admins can now fix hidden Listing Type required validation from Directorist Tools -> Form Repairs.
 
 = 2.2.15 =
 File Manager deletes now move to a recoverable trash area when possible, and admins can enable fatal error logging only when needed.

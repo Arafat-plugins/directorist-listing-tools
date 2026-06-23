@@ -234,6 +234,10 @@ function dlt_render_main_settings_tabs() {
 			'label' => __( 'Form Inspector', 'directorist-listing-tools' ),
 			'icon'  => 'dashicons-search',
 		),
+		'directorist-listing-tools-form-repairs' => array(
+			'label' => __( 'Form Repairs', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-forms',
+		),
 		'directorist-listing-tools-builder-presets' => array(
 			'label' => __( 'Builder Presets', 'directorist-listing-tools' ),
 			'icon'  => 'dashicons-update',

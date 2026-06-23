@@ -169,6 +169,26 @@ class Directorist_Listing_Tools_Admin_Menu {
 			);
 		}
 
+		// Fatal Error Logger.
+		add_submenu_page(
+			$parent_slug,
+			esc_html__( 'Error Log', 'directorist-listing-tools' ),
+			esc_html__( 'Error Log', 'directorist-listing-tools' ),
+			'manage_options',
+			'directorist-listing-tools-fatal-error-log',
+			array( $this, 'render_fatal_error_log_page' )
+		);
+
+		// File Trash.
+		add_submenu_page(
+			$parent_slug,
+			esc_html__( 'Trash', 'directorist-listing-tools' ),
+			esc_html__( 'Trash', 'directorist-listing-tools' ),
+			'manage_options',
+			'directorist-listing-tools-trash',
+			array( $this, 'render_trash_page' )
+		);
+
 		// Hide the individual tools from the Directorist menu so only "Directorist Tools"
 		// appears; users can navigate between tools using the tab bar rendered on each page.
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-bulk-delete' );
@@ -184,6 +204,8 @@ class Directorist_Listing_Tools_Admin_Menu {
 		if ( dlt_is_social_login_active() ) {
 			remove_submenu_page( $parent_slug, 'directorist-listing-tools-social-login' );
 		}
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-fatal-error-log' );
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-trash' );
 	}
 
 	/**
@@ -346,6 +368,28 @@ class Directorist_Listing_Tools_Admin_Menu {
 		}
 
 		Directorist_Listing_Tools_Apply_Functions::get_instance()->render_page();
+	}
+
+	/**
+	 * Render fatal error logger page.
+	 */
+	public function render_fatal_error_log_page() {
+		if ( ! dlt_current_user_can() ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
+		}
+
+		Directorist_Listing_Tools_Fatal_Error_Logger::get_instance()->render_page();
+	}
+
+	/**
+	 * Render file trash page.
+	 */
+	public function render_trash_page() {
+		if ( ! dlt_current_user_can() ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
+		}
+
+		Directorist_Listing_Tools_Trash_Manager::get_instance()->render_page();
 	}
 }
 

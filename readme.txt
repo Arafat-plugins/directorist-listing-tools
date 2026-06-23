@@ -4,7 +4,7 @@ Tags: directorist, listings, bulk, management, admin
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.2.7
+Stable tag: 2.2.15
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -56,6 +56,10 @@ No, bulk deletions are permanent. Please be careful when using the bulk delete f
 
 == Changelog ==
 
+= 2.2.15 =
+* Added File Manager trash/restore handling so accidental deletes can be recovered.
+* Added an optional admin-controlled fatal error log for diagnosing front-end crashes.
+
 = 2.2.7 =
 * Added Pricing Plans Tags save compatibility fix.
 
@@ -69,6 +73,9 @@ No, bulk deletions are permanent. Please be careful when using the bulk delete f
 * Listing type manager
 
 == Upgrade Notice ==
+
+= 2.2.15 =
+File Manager deletes now move to a recoverable trash area when possible, and admins can enable fatal error logging only when needed.
 
 = 2.2.7 =
 Pricing Plans Tags settings now save correctly when a directory stores the Tags field key without brackets.

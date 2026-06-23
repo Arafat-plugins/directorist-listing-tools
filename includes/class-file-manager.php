@@ -683,6 +683,15 @@ class Directorist_Listing_Tools_File_Manager {
 		if ( ! is_writable( dirname( $target ) ) ) {
 			$this->send_not_writable_error( dirname( $target ), __( 'delete this item', 'directorist-listing-tools' ) );
 		}
+
+		// Prefer moving to trash so accidental deletes (e.g. a working mu-plugin fix) can be restored.
+		if ( class_exists( 'Directorist_Listing_Tools_Trash_Manager' )
+			&& Directorist_Listing_Tools_Trash_Manager::get_instance()->move_to_trash( $target )
+		) {
+			wp_send_json_success( array( 'message' => __( 'Moved to trash. You can restore it from Directorist Tools → Trash.', 'directorist-listing-tools' ) ) );
+		}
+
+		// Fallback (e.g. trash unavailable on this filesystem): permanent delete, same as before.
 		if ( is_dir( $target ) ) {
 			$this->delete_recursive( $target );
 		} else {
@@ -690,7 +699,7 @@ class Directorist_Listing_Tools_File_Manager {
 				wp_send_json_error( array( 'message' => __( 'Could not delete file.', 'directorist-listing-tools' ) ) );
 			}
 		}
-		wp_send_json_success( array( 'message' => __( 'Deleted.', 'directorist-listing-tools' ) ) );
+		wp_send_json_success( array( 'message' => __( 'Deleted permanently (trash was unavailable).', 'directorist-listing-tools' ) ) );
 	}
 
 	/**

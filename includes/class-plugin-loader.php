@@ -57,10 +57,12 @@ class Directorist_Listing_Tools_Loader {
 		require_once DLT_DIR . 'includes/class-display-settings.php';
 		require_once DLT_DIR . 'includes/class-plan-manager.php';
 		require_once DLT_DIR . 'includes/class-admin-menu.php';
+		require_once DLT_DIR . 'includes/class-trash-manager.php';
 		require_once DLT_DIR . 'includes/class-file-manager.php';
 		require_once DLT_DIR . 'includes/class-form-inspector.php';
 		require_once DLT_DIR . 'includes/class-builder-preset-restore.php';
 		require_once DLT_DIR . 'includes/class-apply-functions.php';
+		require_once DLT_DIR . 'includes/class-fatal-error-logger.php';
 		if ( dlt_is_social_login_active() ) {
 			require_once DLT_DIR . 'includes/class-social-login-diagnostics.php';
 		}
@@ -75,9 +77,11 @@ class Directorist_Listing_Tools_Loader {
 		Directorist_Listing_Tools_Display_Settings::get_instance();
 		Directorist_Listing_Tools_Plan_Manager::get_instance();
 		Directorist_Listing_Tools_Admin_Menu::get_instance();
+		Directorist_Listing_Tools_Trash_Manager::get_instance();
 		Directorist_Listing_Tools_File_Manager::get_instance();
 		Directorist_Listing_Tools_Form_Inspector::get_instance();
 		Directorist_Listing_Tools_Builder_Preset_Restore::get_instance();
+		Directorist_Listing_Tools_Fatal_Error_Logger::get_instance();
 		if ( dlt_is_social_login_active() ) {
 			Directorist_Listing_Tools_Social_Login_Diagnostics::get_instance();
 		}

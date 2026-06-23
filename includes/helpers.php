@@ -238,6 +238,14 @@ function dlt_render_main_settings_tabs() {
 			'label' => __( 'Builder Presets', 'directorist-listing-tools' ),
 			'icon'  => 'dashicons-update',
 		),
+		'directorist-listing-tools-fatal-error-log' => array(
+			'label' => __( 'Error Log', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-warning',
+		),
+		'directorist-listing-tools-trash' => array(
+			'label' => __( 'Trash', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-trash',
+		),
 	);
 	if ( dlt_is_social_login_active() ) {
 		$tabs['directorist-listing-tools-social-login'] = array(

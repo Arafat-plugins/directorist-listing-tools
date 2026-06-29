@@ -168,6 +168,16 @@ class Directorist_Listing_Tools_Admin_Menu {
 			array( $this, 'render_builder_presets_page' )
 		);
 
+		// Migration repairs.
+		add_submenu_page(
+			$parent_slug,
+			esc_html__( 'Migration Repairs', 'directorist-listing-tools' ),
+			esc_html__( 'Migration Repairs', 'directorist-listing-tools' ),
+			'manage_options',
+			'directorist-listing-tools-migration-repairs',
+			array( $this, 'render_migration_repairs_page' )
+		);
+
 		if ( dlt_is_social_login_active() ) {
 			add_submenu_page(
 				$parent_slug,
@@ -212,6 +222,7 @@ class Directorist_Listing_Tools_Admin_Menu {
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-form-inspector' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-form-repairs' );
 		remove_submenu_page( $parent_slug, 'directorist-listing-tools-builder-presets' );
+		remove_submenu_page( $parent_slug, 'directorist-listing-tools-migration-repairs' );
 		if ( dlt_is_social_login_active() ) {
 			remove_submenu_page( $parent_slug, 'directorist-listing-tools-social-login' );
 		}
@@ -367,6 +378,19 @@ class Directorist_Listing_Tools_Admin_Menu {
 		dlt_render_main_settings_tabs();
 
 		Directorist_Listing_Tools_Builder_Preset_Restore::get_instance()->render_page();
+	}
+
+	/**
+	 * Render migration repairs page.
+	 */
+	public function render_migration_repairs_page() {
+		if ( ! dlt_current_user_can() ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'directorist-listing-tools' ) );
+		}
+
+		dlt_render_main_settings_tabs();
+
+		Directorist_Listing_Tools_Migration_Repairs::get_instance()->render_page();
 	}
 
 	/**

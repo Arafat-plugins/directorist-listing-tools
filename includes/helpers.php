@@ -242,6 +242,10 @@ function dlt_render_main_settings_tabs() {
 			'label' => __( 'Builder Presets', 'directorist-listing-tools' ),
 			'icon'  => 'dashicons-update',
 		),
+		'directorist-listing-tools-migration-repairs' => array(
+			'label' => __( 'Migration Repairs', 'directorist-listing-tools' ),
+			'icon'  => 'dashicons-database',
+		),
 		'directorist-listing-tools-fatal-error-log' => array(
 			'label' => __( 'Error Log', 'directorist-listing-tools' ),
 			'icon'  => 'dashicons-warning',

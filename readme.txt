@@ -4,7 +4,7 @@ Tags: directorist, listings, bulk, management, admin
 Requires at least: 5.0
 Tested up to: 6.4
 Requires PHP: 7.4
-Stable tag: 2.2.17
+Stable tag: 2.2.18
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,6 +20,7 @@ Directorist Listing Tools provides powerful bulk management features for Directo
 * **Pending Listings Manager**: View and manage all pending listings with bulk publish or delete actions
 * **Listing Type Manager**: Set or change listing types for multiple listings simultaneously
 * **Form Repairs**: Fix hidden Directorist add-listing form required validation flags without touching listings
+* **Migration Repairs**: Normalize migrated Directorist directory metadata that can break archive/search rendering
 * **Builder Preset Reload**: Restore known missing Directorist preset fields without touching published listings
 * **Pricing Plans Tags Save Fix**: Normalizes malformed Directorist Tags field keys so plan settings save correctly
 
@@ -57,6 +58,9 @@ No, bulk deletions are permanent. Please be careful when using the bulk delete f
 
 == Changelog ==
 
+= 2.2.18 =
+* Added an admin-only Migration Repairs tool for malformed migrated Directorist choice-field options, search-form references, and scalar card layout items.
+
 = 2.2.17 =
 * Extended Form Repairs with an optional mode for all required fields that are stored but not placed in the Add Listing Form.
 
@@ -80,6 +84,9 @@ No, bulk deletions are permanent. Please be careful when using the bulk delete f
 * Listing type manager
 
 == Upgrade Notice ==
+
+= 2.2.18 =
+Adds Migration Repairs for migrated Directorist metadata that can break listing archives or homepage listing shortcodes.
 
 = 2.2.17 =
 Form Repairs can now fix hidden required validation for Listing Type only or for all unplaced required fields.
